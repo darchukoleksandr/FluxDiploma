@@ -1,0 +1,12 @@
+﻿<Window x:Class="Client.Wpf.Windows.Preloader"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:gif="http://wpfanimatedgif.codeplex.com"
+    Title="Pre-loader control demo" Height="270" Width="500" ResizeMode="NoResize">
+    <Grid>
+        <Image gif:ImageBehavior.AnimatedSource="../Resources/preloader.gif" Height="250" Width="500" Margin="0,-10,0,0"/>
+        <TextBlock TextAlignment="Center"
+                   Name="InfoTextBlock" FontSize="18"
+                   Height="39" VerticalAlignment="Bottom"/>
+    </Grid>
+</Window>
