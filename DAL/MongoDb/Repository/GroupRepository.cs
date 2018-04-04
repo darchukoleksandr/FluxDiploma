@@ -83,7 +83,7 @@ namespace DAL.MongoDb.Repository
             var enumerable = s.SelectMany(users => users);
             return enumerable.Select(user => user.Email);
         }
-       
+
         public Task Update(Group item)
         {
             throw new NotImplementedException();

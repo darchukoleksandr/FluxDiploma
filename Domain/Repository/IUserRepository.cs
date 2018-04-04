@@ -10,5 +10,6 @@ namespace Domain.Repository
         Task<ChatUserViewModel> GetByEmailForContacts(string email);
         Task AddPrivateKey(string userEmail,byte[] privateKey, Guid chatRoomId);
         Task RemoveContact(string userEmail, string contactEmail);
+        void AddContact(string userEmail, string contactEmail);
     }
 }

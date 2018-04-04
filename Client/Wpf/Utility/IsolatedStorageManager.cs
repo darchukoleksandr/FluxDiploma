@@ -33,7 +33,7 @@ namespace Client.Wpf.Utility
             }
         }
 
-        public static async Task<(string, string)> ReadSavedOauthTokens()
+        public static async Task<string> ReadSavedAccessTokens()
         {
             using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
             {
@@ -42,14 +42,13 @@ namespace Client.Wpf.Utility
                     using (var streamReader = new StreamReader(isolatedStorageFileStream))
                     {
                         var accessToken = await streamReader.ReadLineAsync();
-                        var identityToken = await streamReader.ReadLineAsync();
-                        return (accessToken, identityToken);
+                        return accessToken;
                     }
                 }
             }
         }
 
-        public static async Task SaveOauthTokens(string accessToken, string identityToken)
+        public static async Task SaveOauthTokens(string accessToken)
         {
             await ReadFile();
             using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
@@ -59,7 +58,6 @@ namespace Client.Wpf.Utility
                     using (var streamReader = new StreamWriter(isolatedStorageFileStream))
                     {
                         await streamReader.WriteLineAsync(accessToken);
-                        await streamReader.WriteLineAsync(identityToken);
                     }
                 }
             }
@@ -79,47 +77,5 @@ namespace Client.Wpf.Utility
                 }
             }
         }
-
-        //    public static async Task SaveProviderToken(ProviderAccessToken token)
-        //    {
-        //        using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
-        //        {
-        //            using (var isolatedStorageFileStream = isolatedStorage.OpenFile(
-        //                Path.Combine(ProvidersDirectoryName, token.Provider), 
-        //                FileMode.OpenOrCreate, FileAccess.Write))
-        //            {
-        //                using (var streamReader = new StreamWriter(isolatedStorageFileStream))
-        //                {
-        //                    await streamReader.WriteLineAsync(token.AccessToken);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    public static async Task<ProviderAccessToken> GetProviderToken(string provider)
-        //    {
-        //        using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
-        //        {
-        //            //TODO
-        //            if (!isolatedStorage.FileExists(Path.Combine(ProvidersDirectoryName, provider)))
-        //            {
-        //                return null;
-        //            }
-
-        //            using (var isolatedStorageFileStream = isolatedStorage.OpenFile(
-        //                Path.Combine(ProvidersDirectoryName, provider),
-        //                FileMode.Open, FileAccess.Read))
-        //            {
-        //                using (var streamReader = new StreamReader(isolatedStorageFileStream))
-        //                {
-        //                    return new ProviderAccessToken
-        //                    {
-        //                        Provider = provider,
-        //                        AccessToken = await streamReader.ReadLineAsync()
-        //                    };
-        //                }
-        //            }
-        //        }
-        //    }
     }
 }

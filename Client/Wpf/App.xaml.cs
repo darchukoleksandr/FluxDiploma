@@ -1,21 +1,26 @@
-﻿using System.Windows;
+﻿using System;
+using System.CodeDom.Compiler;
+using System.Diagnostics;
+using System.Windows;
 
 namespace Client.Wpf
 {
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "4.0.0.0")]
+    [GeneratedCode("PresentationBuildTasks", "4.0.0.0")]
     public partial class App
     {
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            base.OnStartup(e);
-        }
-
-        [System.STAThreadAttribute()]
-        [System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [STAThread]
+        [DebuggerNonUserCode]
         public static void Main() {
-            Client.Wpf.App app = new Client.Wpf.App();
+            App app = new App();
             app.InitializeComponent();
             app.Run();
+        }
+
+        public static void ChangeMainWindow(Window window)
+        {
+            Current.MainWindow.Close();
+            Current.MainWindow = window;
+            window.Show();
         }
     }
 }

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using Auth0.OidcClient;
-using Client.Base;
-using NetworkCommsDotNet;
+using Client.Wpf.Utility;
+using Microsoft.AspNet.SignalR.Client;
 
 namespace Client.Wpf.Windows
 {
@@ -18,54 +17,34 @@ namespace Client.Wpf.Windows
         public Preloader()
         {
             InitializeComponent();
-
             StartSession();
         }
 
         private async void StartSession()
         {
-//            await IsolatedStorageManager.DeleteOauthTokens();
-
             while (true)
             {
                 try
                 {
-                    var tokensTuple = await Utility.IsolatedStorageManager.ReadSavedOauthTokens();
+                    var accessToken = await IsolatedStorageManager.ReadSavedAccessTokens();
 
-                    if (string.IsNullOrEmpty(tokensTuple.Item1) || string.IsNullOrEmpty(tokensTuple.Item2))
+                    if (string.IsNullOrEmpty(accessToken))
                     {
                         await ShowAuth0Login();
+                        continue;
                     }
 
-                    await ConnectToServer();
+                    await ConnectToServer(accessToken);
 
                     break;
                 }
                 catch (Exception)
                 {
-                    // ignored 
+//                     ignored 
                 }
             }
 
-            if (Application.Current.MainWindow == this)
-            {
-                foreach (Window window in Application.Current.Windows)
-                {
-                    if (window is MainWindow mainWindow)
-                    {
-                        Application.Current.MainWindow = mainWindow;
-                        Application.Current.MainWindow.Show();
-                        Application.Current.MainWindow.Show();
-                        mainWindow.InitializeViewModel();
-                    }
-                }
-            }
-            else
-            {
-                DialogResult = true;
-            }
-
-            Close();
+            App.ChangeMainWindow(new MainWindow());
         }
 
         private async Task ShowAuth0Login()
@@ -76,7 +55,7 @@ namespace Client.Wpf.Windows
                 {
                     Domain = "darchukoleksandr.eu.auth0.com",
                     ClientId = "dhoIjZT4QScLhj2soIMnelYLc0A8NaTT",
-                    Browser = new Utility.SystemWebBrowser(),
+                    Browser = new SystemWebBrowser(),
                     RedirectUri = "http://127.0.0.1:7895/"
                 });
                 
@@ -94,7 +73,7 @@ namespace Client.Wpf.Windows
                     return;
                 }
 
-                await Utility.IsolatedStorageManager.SaveOauthTokens(result.AccessToken, result.IdentityToken);
+                await IsolatedStorageManager.SaveOauthTokens(result.AccessToken);
             }
             catch (InvalidOperationException)
             {
@@ -108,61 +87,38 @@ namespace Client.Wpf.Windows
             //}
         }
 
-        private async Task ConnectToServer()
+        private async Task ConnectToServer(string accesToken)
         {
-            var tokensTuple = await Utility.IsolatedStorageManager.ReadSavedOauthTokens();
             InfoTextBlock.Text = "Connecting to server";
 
-            await Task.Run(async () =>
+            try
             {
-                try
+                //TODO dislocate to session
+                var connectionResponse = await RequestProvider.Connect(accesToken);
+
+                SessionManager.LoggedUser = connectionResponse.User;
+                SessionManager.UserGroups = connectionResponse.Groups;
+                SessionManager.UserContacts = connectionResponse.Contacts;
+            }
+            catch (HttpRequestException) // No connection with host
+            {
+                Dispatcher.Invoke(() => InfoTextBlock.Text = "Server is not responding");
+                await Task.Delay(3000);
+                throw;
+            }
+            catch (HttpClientException e)
+            {
+                if (e.Message.StartsWith("StatusCode: 500"))
                 {
-                    //TODO dislocate to session
-                    var connectionResponse =
-                        RequestProvider.Connect(tokensTuple.Item1, tokensTuple.Item2);
-
-                    if (connectionResponse.IsErrorOccured())
-                    {
-                        if (connectionResponse.Error == "NullRefenceException" ||
-                            connectionResponse.Error == "SecurityTokenExpiredException")
-                        {
-                            await Utility.IsolatedStorageManager.DeleteOauthTokens();
-                            throw new ConnectionShutdownException();
-                        }
-
-                        if (connectionResponse.Error == "InvalidOperationException")
-                            throw new ConnectionSetupException();
-                        throw new Exception();
-                    }
-
-                    Utility.SessionManager.LoggedUser = connectionResponse.Response;
-
-                    if (connectionResponse.Response.PrivateKeys.Any())
-                    {
-                        Utility.SessionManager.UpdateUserGroups();
-                    }
-
-                    if (connectionResponse.Response.Contacts.Any())
-                    {
-                        Utility.SessionManager.UpdateUserContacts();
-                    }
-                }
-                catch (ConnectionSetupException)
-                {
-                    Dispatcher.Invoke(() => InfoTextBlock.Text = "Server is not responding");
+                    Dispatcher.Invoke(() => InfoTextBlock.Text = "Can not connect to server!");
                     await Task.Delay(3000);
-                    throw;
                 }
-            });
-
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            base.OnClosing(e);
-
-
-//            Application.Current.Shutdown();
+                if (e.Message.StartsWith("StatusCode: 401")) // Token expired
+                {
+                    await IsolatedStorageManager.DeleteOauthTokens();
+                }
+                throw;
+            }
         }
     }
 }

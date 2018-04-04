@@ -1,48 +1,67 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Domain.Models;
 
 namespace Client.Wpf.ViewModels
 {
+    class UserViewModel
+    {
+        public UserViewModel(string email, IEnumerable<TypeValueClaim> claims)
+        {
+            Email = email;
+            Claims = claims;
+        }
+        public string Email { get; }
+        public IEnumerable<TypeValueClaim> Claims { get; }
+        public string UserName { 
+            get => GetClaim(nameof(UserName));
+            set => SetClaim(nameof(UserName), value);
+        }
+
+        public string FirstName { 
+            get => GetClaim(nameof(FirstName));
+            set => SetClaim(nameof(FirstName), value);
+        }
+
+        public string LastName { 
+            get => GetClaim(nameof(LastName));
+            set => SetClaim(nameof(LastName), value);
+        }
+
+        public string Picture { 
+            get => GetClaim(nameof(Picture));
+            set => SetClaim(nameof(Picture), value);
+        }
+
+        private string GetClaim(string type)
+        {
+            return Claims.FirstOrDefault(claim => claim.Type == type)?.Value;
+        }
+        private void SetClaim(string type, string value)
+        {
+            var claims = Claims.First(claim => claim.Type == type);
+            claims.Value = value;
+        }
+    }
+
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
         public MainWindowViewModel()
         {
-//            Contacts = SessionManager.UserContacts ?? new List<ChatUserViewModel>();
-//            Groups = SessionManager.UserGroups ?? new List<Group>();
-//            User = SessionManager.LoggedUser;
             SelectedGroupDecryptedMessages = new ObservableCollection<Message>();
-//            SelectedGroupDecryptedMessages = new ObservableCollection<Message>{new Message
-//            {
-//                Content = "Testttt", Sended = DateTime.Now, SenderEmail = "darchukoleksandr@gmail.com", Type = Type.Plain
-//            }, new Message
-//                {
-//                    Content = "TesttttTesttttTesttttTesttttTesttttTesttttTesttttTesttttTesttttTesttttTesttttTesttttTesttttTestttt", Sended = DateTime.Now, SenderEmail = "darchukoleksandr@gmail.com", Type = Type.Plain
-//                }};
             InitializeData();
         }
 
         private async void InitializeData()
         {
-            var valueTuple = await Utility.IsolatedStorageManager.ReadSavedOauthTokens();
+            var accessToken = await Utility.IsolatedStorageManager.ReadSavedAccessTokens();
 
-            AccessToken = valueTuple.Item1;
-            IdentityToken = valueTuple.Item2;
+            AccessToken = accessToken;
         }
         
-        public string IdentityToken
-        {
-            get => _identityToken;
-            set
-            {
-                _identityToken = value;
-                OnPropertyChanged(nameof(IdentityToken));
-            }
-        }
-        private string _identityToken;
-
         public string AccessToken
         {
             get => _accessToken;
@@ -54,7 +73,7 @@ namespace Client.Wpf.ViewModels
         }
         private string _accessToken;
 
-        public IEnumerable<ChatUserViewModel> Contacts
+        public ICollection<UserViewModel> Contacts
         {
             get => _contacts;
             set
@@ -63,7 +82,17 @@ namespace Client.Wpf.ViewModels
                 OnPropertyChanged(nameof(Contacts));
             }
         }
-        private IEnumerable<ChatUserViewModel> _contacts;
+        private ICollection<UserViewModel> _contacts;
+//        public ICollection<ChatUserViewModel> Contacts
+//        {
+//            get => _contacts;
+//            set
+//            {
+//                _contacts = value;
+//                OnPropertyChanged(nameof(Contacts));
+//            }
+//        }
+//        private ICollection<ChatUserViewModel> _contacts;
 
         public IEnumerable<Group> Groups
         {
@@ -87,7 +116,17 @@ namespace Client.Wpf.ViewModels
         }
         private User _user;
 
-        public ChatUserViewModel SelectedContactUser
+//        public ChatUserViewModel SelectedContactUser
+//        {
+//            get => _selectedContactUser;
+//            set
+//            {
+//                _selectedContactUser = value;
+//                OnPropertyChanged(nameof(SelectedContactUser));
+//            }
+//        }
+//        private ChatUserViewModel _selectedContactUser;
+        public UserViewModel SelectedContactUser
         {
             get => _selectedContactUser;
             set
@@ -96,7 +135,7 @@ namespace Client.Wpf.ViewModels
                 OnPropertyChanged(nameof(SelectedContactUser));
             }
         }
-        private ChatUserViewModel _selectedContactUser;
+        private UserViewModel _selectedContactUser;
 
         public Group SelectedGroup
         {

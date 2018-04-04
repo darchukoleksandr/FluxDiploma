@@ -1,7 +1,7 @@
 ﻿<Application x:Class="Client.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="Windows/Main.xaml">
+             StartupUri="Windows/Preloader.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

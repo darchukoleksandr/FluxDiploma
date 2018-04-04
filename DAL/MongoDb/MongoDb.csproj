@@ -7,7 +7,7 @@
     <ProjectGuid>{70876BF7-DAD8-47F4-9B24-B21FFB01B5EC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MongoDb</RootNamespace>
+    <RootNamespace>DAL.MongoDb</RootNamespace>
     <AssemblyName>MongoDb</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

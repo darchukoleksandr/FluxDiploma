@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Client.Base;
+using Client.Wpf.Windows;
 using Domain.Crypto;
 using Domain.Models;
 
@@ -15,48 +14,51 @@ namespace Client.Wpf.Utility
 
         public static IEnumerable<Group> UserGroups { get; set; }
 
-        public static IEnumerable<ChatUserViewModel> UserContacts { get; set; }
+        public static ICollection<ChatUserViewModel> UserContacts { get; set; }
         /// <summary>
         /// Stores profile data for all users
         /// </summary>
-        public static IEnumerable<ChatUserViewModel> UsersDataCache { get; set; } = new Collection<ChatUserViewModel>();
+        public static IEnumerable<ChatUserViewModel> UsersDataCache { get; set; }
 
-        public static void UpdateUserContacts()
+        public static async void UpdateUserContacts()
         {
-            var operationResponse = RequestProvider.GetUsersData(LoggedUser.Contacts.ToArray());
+            var operationResponse = await RequestProvider.GetUsersData(LoggedUser.Contacts.ToArray());
 
-            if (!operationResponse.IsErrorOccured())
-            {
-                UserContacts = operationResponse.Response;
-            }
+            UserContacts = operationResponse;
         }
 
-        public static void UpdateUserGroups()
+//        public static void UpdateUserGroups()
+//        {
+//            var operationResponse = RequestProvider.UpdateGroupsList(
+//                LoggedUser.PrivateKeys.Select(info => info.GroupId).ToArray());
+//            
+//            if (!operationResponse.IsErrorOccured())
+//            {
+//                UserGroups = operationResponse.Response;
+//            }
+//        }
+
+        public static async void AddToContacts(string contactEmail)
         {
-            var operationResponse = RequestProvider.UpdateGroupsList(
-                LoggedUser.PrivateKeys.Select(info => info.GroupId).ToArray());
-            
-            if (!operationResponse.IsErrorOccured())
+            var operationResponse = await RequestProvider.AddToContacts(contactEmail);
+
+            if (operationResponse.IsErrorOccured())
             {
-                UserGroups = operationResponse.Response;
+                throw new Exception(operationResponse.Error);
             }
-        }
 
-        public static void AddToContacts(string userEmail)
-        {
-            var operationResponse = RequestProvider.AddToContacts(LoggedUser.Email, userEmail);
-            
-            LoggedUser = operationResponse.Response;
+            LoggedUser.Contacts.Add(contactEmail);
+            UserContacts.Add(operationResponse.Response);
 
-            UpdateUserContacts();
+//            UpdateUserContacts();
 //            UsersDataCache = UsersDataCache.Intersect(operationResponse.Response);
         }
 
-        public static ChatUserViewModel GetUsersData(string userEmail)
+        public static async Task<ChatUserViewModel> GetUsersData(string userEmail)
         {
-            var operationResponse = RequestProvider.GetUsersData(new [] { userEmail });
+            var operationResponse = await RequestProvider.GetUsersData(new [] { userEmail });
 
-            return operationResponse.Response.First();
+            return operationResponse.First();
 //            UsersDataCache = UsersDataCache.Intersect(operationResponse.Response);
         }
 
@@ -68,11 +70,13 @@ namespace Client.Wpf.Utility
             LoggedUser = null;
             UserGroups = null;
             UserContacts = null;
+
+            App.ChangeMainWindow(new Preloader());
         }
 
         public static void LeaveGroup(Guid id)
         {
-            RequestProvider.LeaveGroup(id, LoggedUser.Email);
+            RequestProvider.LeaveGroup(id);
         }
 
         public static string DecryptMessage(Guid groupId, string chiperText)
@@ -88,6 +92,11 @@ namespace Client.Wpf.Utility
                 GroupId = groupId,
                 PrivateKey = privateKey
             });
+        }
+
+        public static void RemoveFromContacts(string contactEmail)
+        {
+            RequestProvider.RemoveFromContacts(contactEmail);
         }
     }
 }
