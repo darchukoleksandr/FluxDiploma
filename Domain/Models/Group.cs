@@ -12,6 +12,7 @@ namespace Domain.Models
         public string Name { get; set; }
         public ICollection<GroupUserPublicKey> UsersPublicKeys { get; set; } = new Collection<GroupUserPublicKey>();
         public string Owner { get; set; }
+        public string Picture { get; set; }
         public GroupType Type { get; set; }
         public ICollection<Message> Messages { get; set; } = new Collection<Message>();
     }
@@ -21,7 +22,8 @@ namespace Domain.Models
         Open = 0,
         Closed = 1,
         Secret = 2,
-        Personal = 3
+        Personal = 3,
+        Channel = 4
     }
 
     public class GroupUserPublicKey

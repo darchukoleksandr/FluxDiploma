@@ -3,11 +3,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Client.Wpf.Utility;
 using Domain.Models;
 
 namespace Client.Wpf.ViewModels
 {
-    class UserViewModel
+    public class UserViewModel
     {
         public UserViewModel(string email, IEnumerable<TypeValueClaim> claims)
         {
@@ -16,6 +17,14 @@ namespace Client.Wpf.ViewModels
         }
         public string Email { get; }
         public IEnumerable<TypeValueClaim> Claims { get; }
+
+        public bool Is
+        {
+            get => SessionManager.UserContacts.Any(contact => contact.Email == Email);
+        }
+
+        public string FullName => $"{GetClaim(nameof(FirstName))} {GetClaim(nameof(LastName))}";
+
         public string UserName { 
             get => GetClaim(nameof(UserName));
             set => SetClaim(nameof(UserName), value);
@@ -47,52 +56,12 @@ namespace Client.Wpf.ViewModels
         }
     }
 
-    internal class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : INotifyPropertyChanged
     {
-        public MainWindowViewModel()
-        {
-            SelectedGroupDecryptedMessages = new ObservableCollection<Message>();
-            InitializeData();
-        }
 
-        private async void InitializeData()
-        {
-            var accessToken = await Utility.IsolatedStorageManager.ReadSavedAccessTokens();
-
-            AccessToken = accessToken;
-        }
-        
-        public string AccessToken
-        {
-            get => _accessToken;
-            set
-            {
-                _accessToken = value;
-                OnPropertyChanged(nameof(AccessToken));
-            }
-        }
-        private string _accessToken;
-
-        public ICollection<UserViewModel> Contacts
-        {
-            get => _contacts;
-            set
-            {
-                _contacts = value;
-                OnPropertyChanged(nameof(Contacts));
-            }
-        }
-        private ICollection<UserViewModel> _contacts;
-//        public ICollection<ChatUserViewModel> Contacts
-//        {
-//            get => _contacts;
-//            set
-//            {
-//                _contacts = value;
-//                OnPropertyChanged(nameof(Contacts));
-//            }
-//        }
-//        private ICollection<ChatUserViewModel> _contacts;
+        public ObservableCollection<SearchResult> SearchResults { get; set; } = new ObservableCollection<SearchResult>();
+            
+        public ObservableCollection<UserViewModel> Contacts { get; set; } = new ObservableCollection<UserViewModel>();
 
         public IEnumerable<Group> Groups
         {
@@ -116,16 +85,6 @@ namespace Client.Wpf.ViewModels
         }
         private User _user;
 
-//        public ChatUserViewModel SelectedContactUser
-//        {
-//            get => _selectedContactUser;
-//            set
-//            {
-//                _selectedContactUser = value;
-//                OnPropertyChanged(nameof(SelectedContactUser));
-//            }
-//        }
-//        private ChatUserViewModel _selectedContactUser;
         public UserViewModel SelectedContactUser
         {
             get => _selectedContactUser;
@@ -148,16 +107,12 @@ namespace Client.Wpf.ViewModels
         }
         private Group _group;
 
-        public ICollection<Message> SelectedGroupDecryptedMessages
-        {
-            get => _selectedGroupDecryptedMessages;
-            set
-            {
-                _selectedGroupDecryptedMessages = value;
-                OnPropertyChanged(nameof(SelectedGroupDecryptedMessages));
+        public ObservableCollection<Message> SelectedGroupDecryptedMessages { get; set; } = new ObservableCollection<Message>{ 
+            new Message {
+                Type = MessageType.Info,
+                Content = "Select a group from list or create on in options panel"
             }
-        }
-        private ICollection<Message> _selectedGroupDecryptedMessages;
+        };
 
         public event PropertyChangedEventHandler PropertyChanged;
 

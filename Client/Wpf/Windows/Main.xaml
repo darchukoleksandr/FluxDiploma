@@ -4,10 +4,10 @@
         xmlns:b="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:selector="clr-namespace:Client.Wpf.ViewModels"
-        xmlns:models="clr-namespace:Domain.Models;assembly=Domain"
         mc:Ignorable="b"
         
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:models="clr-namespace:Domain.Models;assembly=Domain"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -18,13 +18,13 @@
         
         Title="WPF client demo" Height="415" Width="681" MinHeight="300" MinWidth="525">
     <Window.Resources>
-        <selector:MessageTypeDataTemplateSelector x:Key="MessageTypeDataTemplateSelector"></selector:MessageTypeDataTemplateSelector>
-        <DataTemplate x:Key="FileMessageTemplate">
+        <selector:MessageTypeDataTemplateSelector x:Key="MessageTypeDataTemplateSelector"/>
+        <DataTemplate x:Key="FileMessageTemplate" DataType="models:Message">
             <Border
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid>
+                <Grid ShowGridLines="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -52,12 +52,12 @@
                 </Grid>
             </Border>
         </DataTemplate>
-        <DataTemplate x:Key="PlainMessageTemplate">
+        <DataTemplate x:Key="PlainMessageTemplate" DataType="models:Message">
             <Border
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid>
+                <Grid ShowGridLines="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -80,12 +80,12 @@
                 </Grid>
             </Border>
         </DataTemplate>
-        <DataTemplate x:Key="PictureMessageTemplate">
+        <DataTemplate x:Key="PictureMessageTemplate" DataType="models:Message">
             <Border
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid>
+                <Grid ShowGridLines="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -107,21 +107,22 @@
                 </Grid>
             </Border>
         </DataTemplate>
-        <DataTemplate x:Key="InfoMessageTemplate">
+        <DataTemplate x:Key="InfoMessageTemplate" DataType="models:Message">
             <Border
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid>
+                <Grid ShowGridLines="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
+                            Width="50"
                             SharedSizeGroup="Checkerz" />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <materialDesign:PackIcon
                         Kind="Information"
-                        Height="20"
-                        Width="20" />
+                        Height="50"
+                        Width="50" />
                     <StackPanel
                         Margin="8 0 0 0"
                         Grid.Column="1">
@@ -134,35 +135,38 @@
     </Window.Resources>
     <Grid>
         <!--     Chat area      -->
-        <ListBox ItemsSource="{Binding SelectedGroupDecryptedMessages}"
-                 Name="MessagesListBox" 
-                 SelectionMode="Multiple"
-                 HorizontalContentAlignment="Stretch"
-                 ItemTemplateSelector="{StaticResource MessageTypeDataTemplateSelector}"
-                 Focusable="False" Margin="210,12,10,75" 
-                 AllowDrop="True" Drop="MessagesListBox_OnDrop"/>
+        <Grid>
+            <ListBox ItemsSource="{Binding SelectedGroupDecryptedMessages}"
+                     Name="MessagesListBox" 
+                     SelectionMode="Multiple"
+                     HorizontalContentAlignment="Stretch"
+                     ItemTemplateSelector="{StaticResource MessageTypeDataTemplateSelector}"
+                     Focusable="False" Margin="210,12,10,75" 
+                     AllowDrop="True" Drop="MessagesListBox_OnDrop"/>
 
-        <TextBox Height="39" Margin="210,0,100,30" TextWrapping="Wrap" 
-                 Name="ChatTextBox" VerticalAlignment="Bottom" 
-                 IsEnabled="False"/>
-        <Button Margin="0,0,55,29" VerticalAlignment="Bottom" 
-                Name="SendMessageButton" Click="SendMessageButtonClick" 
-                Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" 
-                IsEnabled="False" Width="40" HorizontalAlignment="Right">
-            <materialDesign:PackIcon
-                Kind="ArrowRight"
-                Height="20"
-                Width="20" />
-        </Button>
-        <Button IsEnabled="False"
-                Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Name="SendFileButton"
-                Margin="0,0,10,29" Click="SendFileButtonClick" VerticalAlignment="Bottom" Width="40" HorizontalAlignment="Right">
-            <materialDesign:PackIcon
-                Kind="File"
-                Height="20"
-                Width="20" />
-        </Button>
+            <TextBox Height="39" Margin="210,0,100,30" TextWrapping="Wrap" 
+                     Name="ChatTextBox" VerticalAlignment="Bottom" 
+                     IsEnabled="False"/>
+            <Button Margin="0,0,55,29" VerticalAlignment="Bottom" 
+                    Name="SendMessageButton" Click="SendMessageButtonClick" 
+                    Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" 
+                    IsEnabled="False" Width="40" HorizontalAlignment="Right">
+                <materialDesign:PackIcon
+                    Kind="ArrowRight"
+                    Height="20"
+                    Width="20" />
+            </Button>
+            <Button IsEnabled="False"
+                    Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Name="SendFileButton"
+                    Margin="0,0,10,29" Click="SendFileButtonClick" VerticalAlignment="Bottom" Width="40" HorizontalAlignment="Right">
+                <materialDesign:PackIcon
+                    Kind="File"
+                    Height="20"
+                    Width="20" />
+            </Button>
+        </Grid>
 
+        <!--    Options area    -->
         <StackPanel HorizontalAlignment="Left" Width="200">
             <Expander
                 ExpandDirection="Down">
@@ -180,12 +184,13 @@
                             <ColumnDefinition Width="50*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBox TextWrapping="Wrap" Grid.Column="0"
-                                 Name="NewContactEmailTextBox" 
-                                 materialDesign:HintAssist.Hint="Find user by email"
-                                 Height="35" Margin="10,0,0,0"
-                                 VerticalAlignment="Top" HorizontalAlignment="Left" Width="137" />
+                                 Name="SearchTextBox" 
+                                 TextChanged="SearchTextBox_OnTextChanged"
+                                 materialDesign:HintAssist.Hint="Find user or channel"
+                                 Height="35" Margin="10,0,0,0" Width="137"
+                                 VerticalAlignment="Top" HorizontalAlignment="Left" />
                         <Button Grid.Column="1"
-                                Name="AddToContactsButton" Click="AddToContactsButtonClick"
+                                Name="AddToContactsButton" Click="SearchButton_OnClick"
                                 VerticalAlignment="Top" HorizontalAlignment="Left"
                                 Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" 
                                 Margin="10,5,0,0" Height="25" Width="25" 
@@ -196,6 +201,23 @@
                                 Width="20" />
                         </Button>
                     </Grid>
+                    <!--TODO -->
+                    <ListBox Name="SearchResults"
+                             ItemsSource="{Binding SearchResults}"
+                             SelectionChanged="SearchResults_OnSelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ShowGridLines="True">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Grid.Column="0" Grid.Row="0" Source="{Binding Picture}" Height="20" Margin="0, 0, 5, 0" />
+                                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Name}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                     <Button Content="Show my profile" 
                             Style="{StaticResource MaterialDesignFlatButton}"
                             Click="ShowProfileEditorButtonClick"
@@ -214,13 +236,8 @@
                             Name="ContactsButton"/>
                     <Button Content="Logout" HorizontalAlignment="Left"
                             Style="{StaticResource MaterialDesignFlatButton}"
-                            VerticalAlignment="Top" Name="LogoutButton" Click="LogOutButtonClick"/>
-
-                    <!--     Tokens info    -->
-                    <UniformGrid Rows="2" Columns="2" HorizontalAlignment="Left" Width="200" Height="51" VerticalAlignment="Top">
-                        <Label Content="AccessToken" Margin="0,0,9,0"/>
-                        <TextBox Text="{Binding AccessToken}" TextWrapping="Wrap" Name="AccessToken" Margin="0,0,15,3"/>
-                    </UniformGrid>
+                            VerticalAlignment="Top" Name="LogoutButton" 
+                            Click="LogOutButtonClick"/>
                 </StackPanel>
             </Expander>
 
@@ -257,11 +274,12 @@
             </ListBox>
         </StackPanel>
         
-        <Grid Visibility="Hidden" Name="NewGroupContactsSelector">
-<!--        <Grid Name="NewGroupContactsSelector">-->
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+        <Grid Visibility="Hidden" Name="NewGroupForm">
+<!--        <Grid Name="NewGroupForm">-->
+            <Grid HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
-                  MouseUp="HideContactsSelectorGridClicked">
+                  MouseUp="HideNewGroupFormClicked">
             </Grid>
             <Grid Margin="100, 50, 100, 70" HorizontalAlignment="Center"
                   Background="White" Width="250">
@@ -307,6 +325,7 @@
                           Grid.Row="1" Grid.Column="1">
                     <ComboBoxItem>Open</ComboBoxItem>
                     <ComboBoxItem>Closed</ComboBoxItem>
+                    <ComboBoxItem>Channel</ComboBoxItem>
 <!--                    <ComboBoxItem>Secret</ComboBoxItem>-->
                 </ComboBox>
                 <Label Grid.Row="2" Grid.Column="0">Group name:</Label>
@@ -320,9 +339,10 @@
 
         <Grid Visibility="Hidden" Name="ContactsList">
 <!--        <Grid Name="ContactsList">-->
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+            <Grid HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
-                  MouseUp="HideContactsSelectorGridClicked">
+                  MouseUp="HideContactsListClicked">
             </Grid>
             <Grid Margin="100, 50, 100, 70" HorizontalAlignment="Center"
                   Background="White" Width="250">
@@ -339,8 +359,9 @@
                 <ListView Name="ContactsListBox" 
                           Margin="15,15,15,15" 
                           ItemsSource="{Binding Path=Contacts}" 
+                          SelectionChanged="ContactsListBox_OnSelectionChanged"
                           SelectionMode="Multiple" 
-                          Grid.ColumnSpan="3">
+                          Grid.ColumnSpan="3" b:DataContext="{b:DesignData UserViewModel}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid ShowGridLines="True">
@@ -357,16 +378,6 @@
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
-                    <ListView.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Remove" 
-                                      Click="RemoveSelectedContactMenuItemClick"
-                            />
-<!--                            <MenuItem Header="Show users list" -->
-<!--                                      Click="ShowUsersMenuItemClick"-->
-<!--                            />-->
-                        </ContextMenu>
-                    </ListView.ContextMenu>
                 </ListView>
 <!--                <TextBox Grid.Row="2" Grid.Column="1"-->
 <!--                         TextWrapping="Wrap"-->
@@ -390,9 +401,10 @@
 
         <Grid Visibility="Hidden" Name="ProfileInfo">
 <!--        <Grid Name="ProfileInfo">-->
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+            <Grid HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
-                  MouseUp="HideProfileInfoGridClicked">
+                  MouseUp="HideProfileInfoClicked">
             </Grid>
             <Grid Margin="100, 50, 100, 70" Background="White" 
                   MaxWidth="400" ShowGridLines="True" >
@@ -408,19 +420,46 @@
                 <Image Height="100" Width="100" 
                        Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
                        Name="ProfilePicture" 
-                       Source="{Binding SelectedContactUser.Picture, Mode=OneWay}"/>
+                       Source="{Binding Picture, Mode=OneWay}"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" 
                            Style="{StaticResource MaterialDesignHeadlineTextBlock}" 
                            Width="200" Height="Auto"
-                           Text="{Binding SelectedContactUser.LastName, Mode=OneWay}" 
-                           TextWrapping="Wrap" Margin="15,15,15,15" 
-                           />
+                           Text="{Binding FullName, Mode=OneWay}" 
+                           TextWrapping="Wrap" Margin="15,15,15,15" />
                 <TextBlock Grid.Row="1" Grid.Column="1" 
                            Style="{StaticResource MaterialDesignSubheadingTextBlock}" 
                            Width="200" Height="Auto"
-                           Text="{Binding SelectedContactUser.Email, Mode=OneWay}" 
-                           TextWrapping="Wrap" Margin="15,15,15,15" 
-                           />
+                           Text="{Binding Email, Mode=OneWay}" 
+                           TextWrapping="Wrap" Margin="15,15,15,15" />
+                <Button Name="ChangeContactStatus"
+                        Click="ChangeContactStatus_OnClick"
+                        Grid.Row="2" Grid.Column="1">
+                    <Button.Style>
+                        <Style>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ElementName=ChangeContactsStatus, Path=DataContext.Is}" Value="True">
+                                    <Setter Property="Button.Content" Value="Remove from contacts"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ElementName=ChangeContactsStatus, Path=DataContext.Is}" Value="False">
+                                    <Setter Property="Button.Content" Value="Add to contacts"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+<!--                <Button Name="RemoveFromContacts" Content="Remove from contacts" -->
+<!--                        Click="RemoveFromContacts_OnClick"-->
+<!--                        Grid.Row="2" Grid.Column="1">-->
+<!--                    <Button.Style>-->
+<!--                        <Style>-->
+<!--                            <Style.Triggers>-->
+<!--                                <DataTrigger Binding="{Binding ElementName=RemoveFromContacts, Path=DataContext.Is}" Value="True">-->
+<!--                                    <Setter Property="Button.Visibility" Value="Hidden"/>-->
+<!--                                </DataTrigger>-->
+<!--                            </Style.Triggers>-->
+<!--                        </Style>-->
+<!--                    </Button.Style>-->
+<!--                </Button>-->
             </Grid>
         </Grid>
 
@@ -428,7 +467,7 @@
 <!--        <Grid Name="ProfileEditor">-->
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
-                  MouseUp="HideProfileInfoGridClicked">
+                  MouseUp="HideProfileEditorClicked">
             </Grid>
             <Grid Margin="100, 50, 100, 70" Background="White" 
                   MaxWidth="400" ShowGridLines="True" >
@@ -443,7 +482,7 @@
                 </Grid.RowDefinitions>
                 <Image Height="100" Width="100" 
                        Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
-                       Source="{Binding SelectedContactUser.Claims[1].Value}"/>
+                       Source="{Binding SelectedContactUser.Picture}"/>
                 <Button Grid.Row="1" Grid.Column="0" 
                         Margin="25,55,25,0">
                     <materialDesign:PackIcon
@@ -452,11 +491,11 @@
                         Width="40" 
                         MouseUp="DownloadFileImageClick"/>
                 </Button>
-                <TextBox Grid.Row="0" Grid.Column="1" 
-                           materialDesign:HintAssist.Hint="Username"
-                           Width="200" Height="Auto"
-                           Text="{Binding SelectedContactUser.UserName}" 
-                           TextWrapping="Wrap" Margin="25,15,25,50" />
+<!--                <TextBox Grid.Row="0" Grid.Column="1" -->
+<!--                           materialDesign:HintAssist.Hint="Username"-->
+<!--                           Width="200" Height="Auto"-->
+<!--                           Text="{Binding SelectedContactUser.UserName}" -->
+<!--                           TextWrapping="Wrap" Margin="25,15,25,50" />-->
                 <TextBox Grid.Row="0" Grid.Column="1" 
                            materialDesign:HintAssist.Hint="Phone"
                            Width="200" Height="Auto"

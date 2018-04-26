@@ -31,6 +31,13 @@ namespace Host.Web.Hubs
             return base.OnConnected();
         }
 
+        public override Task OnDisconnected(bool stopCalled)
+        {
+            ConnectedUsers.Remove(Context.ConnectionId);
+            Console.WriteLine($"User {Context.ConnectionId} removed from online list!");
+            return base.OnDisconnected(stopCalled);
+        }
+
         public async Task<ConnectionData> Connect()
         {
 //            _logger.WriteVerbose($"Connection opened: {Context.ConnectionId}");
@@ -74,8 +81,16 @@ namespace Host.Web.Hubs
             result.Groups = new List<Group>();
             foreach (var chatRoomId in user.PrivateKeys)
             {
-                var chatRoom = await GroupRepository.GetByIdIncludeMessages(chatRoomId.GroupId);
-                result.Groups.Add(chatRoom);
+                try
+                {
+                    var chatRoom = await GroupRepository.GetByIdIncludeMessages(chatRoomId.GroupId);
+                    result.Groups.Add(chatRoom);
+                }
+                catch (Exception)
+                {
+                    // ReSharper disable once RedundantJumpStatement
+                    continue;
+                }
             }
             result.Contacts = new List<ChatUserViewModel>();
             foreach (var contact in user.Contacts)
@@ -257,8 +272,22 @@ namespace Host.Web.Hubs
 
         public async void SendMessage(Guid groupId, string content)
         {
-            var receipents = await GroupRepository.GetReceipents(groupId);
+            var group = await GroupRepository.GetByIdExcludeMessages(groupId);
+
+            if (group == null)
+            {
+                throw new NullReferenceException("No group with provided id was found!");
+            }
+
             var sender = ConnectedUsers[Context.ConnectionId];
+
+            if (group.Type == GroupType.Channel)
+            {
+                if (group.Owner != sender)
+                {
+                    throw new ArgumentException("Sender is not channel owner!");
+                }
+            }
 
             var message = new Message
             {
@@ -270,24 +299,74 @@ namespace Host.Web.Hubs
 
             await GroupRepository.InsertMessage(groupId, message);
 
+            var receipents = await GroupRepository.GetReceipents(groupId);
+
             Console.WriteLine($"Message from {sender}: {content}");
 
             NotifyMessageReceivedReceipents(receipents, groupId, message);
         }
 
-        public async void CreateGroup(string owner, string name, GroupType type, IEnumerable<string> receipents)
+        public async Task<IEnumerable<SearchResult>> Search(string pattern)
         {
-            Console.WriteLine($"CreateGroup starting!");
+            var groupsResult = await GroupRepository.Search(pattern);
+            var usersResult = await UserRepository.Search(pattern);
 
-            var userGroupPrivateKeys = new List<UserGroupPrivateKeyInfo>();
-            var groupUsers = new List<GroupUserPublicKey>();
-            
-            var group = new Group
+            var result = new List<SearchResult>();
+
+            result.AddRange(groupsResult.Select(group => new SearchResult
             {
-                UsersPublicKeys = groupUsers,
+                Id = group.Id,
+                Name = group.Name,
+                Picture = group.Picture,
+                Type = SearchResultType.Group
+            }));
+
+            result.AddRange(usersResult.Select(user => new SearchResult
+            {
+                Id = user.Id,
+                Name = user.Email,
+                Picture = user.Claims.First(claim => claim.Type == "Picture").Value,
+                Type = SearchResultType.User
+            }));
+
+            Console.WriteLine($"Search: {pattern} returned ({result.Count} match)!");
+
+            return result;
+        }
+
+        public async void CreateChannel(string owner, string name)
+        {
+            var result = new Group
+            {
                 Owner = owner,
                 Name = name,
-                Type = type
+                Type = GroupType.Channel
+            };
+            
+            await GroupRepository.Create(result);
+
+            Console.WriteLine($"Channel {result.Name} created!");
+        }
+
+        public async void CreateGroup(string owner, string name, GroupType groupType, IEnumerable<string> receipents)
+        {
+            Console.WriteLine($"CreateGroup starting!");
+            
+            if (groupType == GroupType.Channel)
+            {
+                CreateChannel(owner, name);
+                return;
+            }
+            
+            var userGroupPrivateKeys = new List<UserGroupPrivateKeyInfo>();
+            var groupUsers = new List<GroupUserPublicKey>();
+
+            var result = new Group
+            {
+                Owner = owner,
+                Name = name,
+                Type = groupType,
+                UsersPublicKeys = groupUsers
             };
 
             foreach (var chatUserEmail in receipents)
@@ -307,20 +386,20 @@ namespace Host.Web.Hubs
                 });
             }
 
-            await GroupRepository.Create(group);
+            await GroupRepository.Create(result);
 
             foreach (var chatUser in userGroupPrivateKeys)
             {
-                await UserRepository.AddPrivateKey(chatUser.Email, chatUser.PrivateKey, group.Id);
+                await UserRepository.AddPrivateKey(chatUser.Email, chatUser.PrivateKey, result.Id);
 
                 var userConnection = ConnectedUsers.FirstOrDefault(pair => pair.Value == chatUser.Email).Key;
                 if (!string.IsNullOrEmpty(userConnection))
                 {
-                    Clients.Client(userConnection).RoomInvite(group, chatUser.PrivateKey);
+                    Clients.Client(userConnection).RoomInvite(result, chatUser.PrivateKey);
                 }
             }
 
-            Console.WriteLine($"Chat room {group.Name} created with {groupUsers.Count} users!");
+            Console.WriteLine($"Chat room {result.Name} created with {groupUsers.Count} users!");
         }
 
         //TODO unused?
@@ -334,15 +413,11 @@ namespace Host.Web.Hubs
         private void AddUserToOnlineList(string connectionId, string userEmail)
         {
             var userConnection = ConnectedUsers.FirstOrDefault(pair => pair.Value == userEmail);
-            if (userConnection.Key == null)
+            if (userConnection.Key != null)
             {
-                ConnectedUsers.Add(connectionId, userEmail);
+                Clients.Client(userConnection.Key).CloseConnection();
             }
-            else
-            {
-//                Clients.Client(userConnection.Key)
-//                userConnection.Key.CloseConnection(false);
-            }
+            ConnectedUsers.Add(connectionId, userEmail);
         }
 
         private void NotifyLeaveGroupReceipents(IEnumerable<string> receipents, Guid chatId, string userEmail)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -51,26 +52,35 @@ namespace DAL.MongoDb.Repository
         public async Task AddPrivateKey(string userEmail, byte[] privateKey, Guid chatRoomId)
         {
             var filter = Builders<User>.Filter.Eq(user => user.Email, userEmail);
-            var updateDefinition = Builders<User>.Update.Push(user => user.PrivateKeys, new GroupUserPrivateKey
+            var update = Builders<User>.Update.Push(user => user.PrivateKeys, new GroupUserPrivateKey
             {
                 GroupId = chatRoomId, 
                 PrivateKey = privateKey
             });
-            await _mongoCollection.UpdateOneAsync(filter, updateDefinition);
+            await _mongoCollection.UpdateOneAsync(filter, update);
         }
         
         public async void AddContact(string userEmail, string contactEmail)
         {
             var filter = Builders<User>.Filter.Eq(user => user.Email, userEmail);
-            var updateDefinition = Builders<User>.Update.Push(user => user.Contacts, contactEmail);
-            await _mongoCollection.UpdateOneAsync(filter, updateDefinition);
+            var update = Builders<User>.Update.Push(user => user.Contacts, contactEmail);
+            await _mongoCollection.UpdateOneAsync(filter, update);
+        }
+
+        public async Task<IEnumerable<User>> Search(string email)
+        {
+            var filter = Builders<User>.Filter.Regex(user => user.Email, $"/{email}/");
+            var projection = Builders<User>.Projection
+                .Exclude(group => group.Contacts)
+                .Exclude(group => group.PrivateKeys);
+            return await _mongoCollection.Find(filter).Project<User>(projection).Limit(10).ToListAsync();
         }
 
         public async Task RemoveContact(string userEmail, string contactEmail)
         {
             var filter = Builders<User>.Filter.Eq(user => user.Email, userEmail);
-            var updateDefinition = Builders<User>.Update.Pull(user => user.Contacts, contactEmail);
-            await _mongoCollection.UpdateOneAsync(filter, updateDefinition);
+            var update = Builders<User>.Update.Pull(user => user.Contacts, contactEmail);
+            await _mongoCollection.UpdateOneAsync(filter, update);
         }
 
         #region unused

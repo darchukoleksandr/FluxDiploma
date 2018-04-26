@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Net.Http;
 using Auth0.Owin;
 using Host.Web;
 using Microsoft.AspNet.SignalR;
@@ -18,21 +16,13 @@ namespace Host.Web
         private static void Main()
         {
             using (WebApp.Start<Startup>("http://localhost:42512/")) 
-            { 
+            {
                 Console.ReadLine();
             }
         }
 
         public void Configuration(IAppBuilder app)
         {
-            //app.Map("", builder =>
-            //{
-            //    builder.Use((context, next) =>
-            //    {
-            //        context.Response.WriteAsync(File.ReadAllText("Index.html"));
-            //        return next();
-            //    });
-            //});
 
             var keyResolver = new OpenIdConnectSigningKeyResolver("https://darchukoleksandr.eu.auth0.com/");
             app.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
@@ -45,7 +35,7 @@ namespace Host.Web
                 }
             }); 
 
-            app.MapSignalR(new HubConfiguration()
+            app.MapSignalR(new HubConfiguration
             {
                 EnableDetailedErrors = true
             });

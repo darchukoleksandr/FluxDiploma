@@ -9,10 +9,12 @@ namespace Domain.Repository
     public interface IGroupRepository : IRepository<Group, Guid>
     {
         Task<Group> GetByIdIncludeMessages(Guid id);
+        Task<Group> GetByIdExcludeMessages(Guid id);
         Task<Message> GetMessageById(Guid groupId, Guid messsageId);
         Task<ICollection<Message>> GetMessages(Guid groupId, int skip = 0, int amount = 25);
         Task InsertMessage(Guid groupId, Message message);
         Task LeaveGroup(Guid groupId, string userEmail);
         Task<IEnumerable<string>> GetReceipents(Guid id);
+        Task<IEnumerable<Group>> Search(string groupName);
     }
 }

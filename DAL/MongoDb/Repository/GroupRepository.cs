@@ -33,10 +33,21 @@ namespace DAL.MongoDb.Repository
         {
             var groupFilter = Builders<Group>.Filter.Eq(group => group.Id, id);
             var groupProjection = Builders<Group>.Projection.Exclude(group => group.Messages);
-            var result = await _mongoCollection.Find(groupFilter).Project<Group>(groupProjection).FirstOrDefaultAsync();
+            var result = await _mongoCollection.Find(groupFilter)
+                .Project<Group>(groupProjection).FirstOrDefaultAsync();
 
-            var messages = await _mongoCollection.Find(groupFilter).Project(group => group.Messages).Limit(25).FirstOrDefaultAsync();
+            var messages = await _mongoCollection.Find(groupFilter)
+                .Project(group => group.Messages).Limit(25).FirstOrDefaultAsync();
             result.Messages = messages;
+
+            return result;
+        }
+        
+        public async Task<Group> GetByIdExcludeMessages(Guid id)
+        {
+            var groupFilter = Builders<Group>.Filter.Eq(group => group.Id, id);
+            var groupProjection = Builders<Group>.Projection.Exclude(group => group.Messages);
+            var result = await _mongoCollection.Find(groupFilter).Project<Group>(groupProjection).FirstOrDefaultAsync();
 
             return result;
         }
@@ -78,15 +89,24 @@ namespace DAL.MongoDb.Repository
 
         public async Task<IEnumerable<string>> GetReceipents(Guid id)
         {
-            var filterDefinition = Builders<Group>.Filter.Eq(chat => chat.Id, id);
-            var s = await _mongoCollection.Find(filterDefinition).Project(group => group.UsersPublicKeys).ToListAsync();
-            var enumerable = s.SelectMany(users => users);
-            return enumerable.Select(user => user.Email);
+            var filter = Builders<Group>.Filter.Eq(chat => chat.Id, id);
+            var receipents = await _mongoCollection.Find(filter)
+                .Project(group => group.UsersPublicKeys).ToListAsync();
+            var result = receipents.SelectMany(users => users);
+            return result.Select(user => user.Email);
         }
 
-        public Task Update(Group item)
+        public async Task<IEnumerable<Group>> Search(string groupName)
         {
-            throw new NotImplementedException();
+            var filter1 = Builders<Group>.Filter.Eq(chat => chat.Type, GroupType.Open);
+            var filter2 = Builders<Group>.Filter.Eq(chat => chat.Type, GroupType.Channel);
+            var filter3 = Builders<Group>.Filter.Regex(chat => chat.Name, $"/{groupName}/");
+            var filter = filter1 & filter2 & filter3;
+
+            var projection = Builders<Group>.Projection
+                .Exclude(group => group.Messages)
+                .Exclude(group => group.UsersPublicKeys);
+            return await _mongoCollection.Find(filter).Project<Group>(projection).Limit(10).ToListAsync();
         }
 
         #region unused
@@ -95,7 +115,11 @@ namespace DAL.MongoDb.Repository
         {
             throw new NotImplementedException();
         }
-
+        
+        public Task Update(Group item)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

@@ -21,6 +21,8 @@ namespace Client.Wpf.Windows
     {
         private readonly MainWindowViewModel _dataContext;
 
+        #region Initialization
+        
         public MainWindow()
         {
             _dataContext = new MainWindowViewModel();
@@ -34,14 +36,10 @@ namespace Client.Wpf.Windows
             MessagesListBox.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
         }
 
-        public async void InitializeViewModel()
+        public void InitializeViewModel()
         {
-            GC.Collect();
-            var tokens = await IsolatedStorageManager.ReadSavedAccessTokens();
             _dataContext.User = SessionManager.LoggedUser;
-            _dataContext.Contacts = new ObservableCollection<UserViewModel>(
-                SessionManager.UserContacts.Select(user => new UserViewModel(user.Email, user.Claims)));
-//            _dataContext.Groups = SessionManager.UserGroups ?? new ObservableCollection<Group>();
+            _dataContext.Contacts.AddRange(SessionManager.UserContacts.Select(user => new UserViewModel(user.Email, user.Claims)));
             _dataContext.Groups = new ObservableCollection<Group>(SessionManager.UserGroups.Select(group =>
             {
                 if (group.Type == GroupType.Personal)
@@ -51,13 +49,17 @@ namespace Client.Wpf.Windows
 
                 return group;
             }));
-            _dataContext.AccessToken = tokens;
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            RequestProvider.CloseAllConnections();
+            base.OnClosing(e);
         }
 
         private void ConfigureRequestHandlers()
         {
-//            RequestProvider.AppendGlobalConnectionCloseHandler(OnConnectionClosed);
-//            RequestProvider.AppendGlobalConnectionEstablishHandler(OnConnected);
+            RequestProvider.AppendGlobalConnectionCloseHandler(OnConnectionClosed);
             RequestProvider.AppendRoomInviteHandler((group, privateKey) =>
             {
                 SessionManager.AddPrivateKey(group.Id, privateKey);
@@ -116,63 +118,19 @@ namespace Client.Wpf.Windows
                 }
             );
         }
+        
+        private async void OnConnectionClosed()
+        {
+            await SessionManager.LogOut();
+        }
+
+        #endregion
 
         private async void LogOutButtonClick(object sender, RoutedEventArgs e)
         {
             await SessionManager.LogOut();
         }
 
-        private void SendMessageButtonClick(object sender, RoutedEventArgs e)
-        {
-            var message = ChatTextBox.Text;
-            if (string.IsNullOrEmpty(message))
-            {
-                return;
-            }
-            
-            Task.Factory.StartNew(() =>
-            {
-                var encryptedString = new Pgp().EncryptString(message, 
-                    _dataContext.SelectedGroup.UsersPublicKeys.Select(user => user.PublicKey));
-                
-//                try
-//                {
-                    RequestProvider.SendMessage(_dataContext.SelectedGroup.Id, encryptedString);
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        var decryptedMessage = new Message
-                        {
-                            Sended = DateTime.Now,
-                            SenderEmail = _dataContext.User.Email,
-                            Content = message
-                        };
-
-                        _dataContext.SelectedGroupDecryptedMessages.Add(decryptedMessage);
-                        _dataContext.SelectedGroup.Messages.Add(new Message
-                        {
-                            Sended = decryptedMessage.Sended,
-                            SenderEmail = decryptedMessage.SenderEmail,
-                            Content = encryptedString
-                        });
-                    });
-//                }
-//                catch (ConnectionSetupException)
-//                {
-//                    MessageBox.Show(this, "Server is unreachable!");
-//                }
-//                catch (ConnectionShutdownException)
-//                {
-//                    MessageBox.Show(this, "Server stopped connection!");
-//                }
-            });
-
-//            MessagesListBox.GetValue(ScrollViewer.Vert, MessagesScrollViewer.ScrollableHeight);
-//            MessagesListBox.SetValue(ScrollViewer.VerticalOffsetProperty, MessagesScrollViewer.ScrollableHeight);
-            ChatTextBox.Text = string.Empty;
-            ChatTextBox.Focus();
-        }
-        
         private void DisableSendActions()
         {
             Dispatcher.Invoke(() => ChatTextBox.IsEnabled = false);
@@ -180,58 +138,17 @@ namespace Client.Wpf.Windows
             Dispatcher.Invoke(() => SendFileButton.IsEnabled = false);
         }
 
-//        private void OnConnectionClosed(Connection connection)
-//        {
-//            DisableSendActions();
-//            Dispatcher.Invoke(() => ConnectionIdLabel.Content = string.Empty);
-//            Dispatcher.Invoke(() => ConnectionIndicator.IsChecked = false);
-//            Dispatcher.Invoke(() => App.ChangeMainWindow(new Preloader()));
-//            App.ChangeMainWindow(new Preloader());
-//        }
-
-//        private void UpdateGroupsList()
-//        {
-//            try
-//            {
-//                SessionManager.UpdateUserGroups();
-//                _dataContext.Groups = SessionManager.UserGroups;
-//            }
-//            catch (ExpectedReturnTimeoutException)
-//            {
-//                MessageBox.Show(this, "Timeout!");
-//            }
-//        }
-
-        private void AddToContactsButtonClick(object sender, RoutedEventArgs e)
+        private async void SearchButton_OnClick(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(NewContactEmailTextBox.Text))
+            if (string.IsNullOrEmpty(SearchTextBox.Text))
             {
-                MessageBox.Show(this, "Empty!");
                 return;
             }
 
-            try
-            {
-                SessionManager.AddToContacts(NewContactEmailTextBox.Text);
+             var result = await SessionManager.Search(SearchTextBox.Text);
 
-                //if (operationResponse.IsErrorOccured())
-                //{
-                //    MessageBox.Show(this, operationResponse.Error);
-                //}
-                //else
-                //{
-                NewContactEmailTextBox.Text = string.Empty;
-                UpdateContactsListFromSession();
-                //}
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.Message);
-            }
-            //catch (ExpectedReturnTimeoutException)
-            //{
-            //    MessageBox.Show(this, "Try again");
-            //}
+//             _dataContext.SearchResults = new ObservableCollection<SearchResult>(result);
+             _dataContext.SearchResults.AddRange(result);
         }
 
         private void CreateRoomButtonClick(object sender, RoutedEventArgs e)
@@ -253,19 +170,14 @@ namespace Client.Wpf.Windows
                 _dataContext.User.Email
             };
 
-//            try
-//            {
-                RequestProvider.CreateGroup(_dataContext.User.Email, 
-                    NewRoomNameTextBox.Text,
-                    (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString()),
-                    receipents);
+            var a = (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString());
 
-                HideContactsSelectorGridClicked(null, null);
-//            }
-//            catch (ExpectedReturnTimeoutException)
-//            {
-//                MessageBox.Show(this, "Try again");
-//            }
+            RequestProvider.CreateGroup(_dataContext.User.Email, 
+                NewRoomNameTextBox.Text,
+                (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString()),
+                receipents);
+
+            HideContactsListClicked(sender, null);
         }
 
         private void GroupsListBoxSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -274,9 +186,19 @@ namespace Client.Wpf.Windows
             {
                 return;
             }
-
+            
             _dataContext.SelectedGroupDecryptedMessages.Clear();
             _dataContext.SelectedGroup = (Group) GroupsListBox.SelectedItem;
+
+            if (_dataContext.SelectedGroup.Type == GroupType.Channel)
+            {
+                if (_dataContext.SelectedGroup.Owner != SessionManager.LoggedUser.Email)
+                {
+                    DisableSendActions();
+                }
+                return;
+            }
+
             foreach (var message in _dataContext.SelectedGroup.Messages)
             {
                 if (message.Type != MessageType.Plain)
@@ -314,7 +236,6 @@ namespace Client.Wpf.Windows
                 });
                 DisableSendActions();
             }
-
         }
 
         private void EnableSendActions()
@@ -322,11 +243,6 @@ namespace Client.Wpf.Windows
             ChatTextBox.IsEnabled = true;
             SendMessageButton.IsEnabled = true;
             SendFileButton.IsEnabled = true;
-        }
-
-        private void UpdateContactsListFromSession()
-        {
-            _dataContext.Contacts = new ObservableCollection<UserViewModel>(SessionManager.UserContacts.Select(user => new UserViewModel(user.Email, user.Claims)));
         }
 
         private void GroupLeaveMenuItemClick(object sender, RoutedEventArgs e)
@@ -371,6 +287,104 @@ namespace Client.Wpf.Windows
             MessageBox.Show(this, aggregate);
         }
 
+        private void ShowNewGroupContactsSelectorButtonClick(object sender, RoutedEventArgs e)
+        {
+            NewGroupForm.Visibility = Visibility.Visible;
+        }
+
+        private async void MessageShowSenderInfoClick(object sender, RoutedEventArgs e)
+        {
+            var sendedMessage = (Message)((FrameworkElement)sender).DataContext;
+            
+            await ShowUserProfileInfo(sendedMessage.SenderEmail);
+        }
+
+        private async Task ShowUserProfileInfo(string userEmail)
+        {
+            var userData = await SessionManager.GetUsersData(userEmail);
+            _dataContext.SelectedContactUser = new UserViewModel(userData.Email, userData.Claims);
+
+            ProfileInfo.DataContext = _dataContext.SelectedContactUser;
+//            if (SessionManager.UserContacts.Any(contact => contact.Email == userData.Email))
+//            {
+//                AddToContacts.Visibility = Visibility.Hidden;
+//                RemoveFromContacts.Visibility = Visibility.Visible;
+//            }
+//            else
+//            {
+//                RemoveFromContacts.Visibility = Visibility.Hidden;
+//                AddToContacts.Visibility = Visibility.Visible;
+//            }
+
+            ProfileInfo.Visibility = Visibility.Visible;
+        }
+
+        private void ShowProfileEditorButtonClick(object sender, RoutedEventArgs e)
+        {
+            _dataContext.SelectedContactUser = new UserViewModel(_dataContext.User.Email, _dataContext.User.Claims);
+            ProfileEditor.Visibility = Visibility.Visible;
+        }
+
+        private void ContactsButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            ContactsList.Visibility = Visibility.Visible;
+        }
+
+        private void SearchTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(SearchTextBox.Text))
+            {
+                _dataContext.SearchResults.Clear();
+            }
+        }
+
+        private async void SearchResults_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SearchResults.SelectedItem == null)
+            {
+                return;
+            }
+
+            var selectedItem = (SearchResult) SearchResults.SelectedItem;
+
+            if (selectedItem.Type == SearchResultType.User)
+            {
+                await ShowUserProfileInfo(selectedItem.Name);
+                SearchResults.UnselectAll();
+                return;
+            }
+
+            //_dataContext.SelectedGroupDecryptedMessages.Clear();
+            //_dataContext.SelectedGroup = (Group) SearchResults.SelectedItem;
+            //foreach (var message in _dataContext.SelectedGroup.Messages)
+            //{
+            //    if (message.Type != MessageType.Plain)
+            //    {
+            //        _dataContext.SelectedGroupDecryptedMessages.Add(message);
+            //        continue;
+            //    }
+
+            //    try
+            //    {
+            //        _dataContext.SelectedGroupDecryptedMessages.Add(new Message
+            //        {
+            //            Id = message.Id,
+            //            Sended = message.Sended,
+            //            SenderEmail = message.SenderEmail,
+            //            Content = SessionManager.DecryptMessage(_dataContext.SelectedGroup.Id, message.Content)
+            //        });
+            //    }
+            //    catch (ArgumentException)
+            //    {
+
+            //    }
+            //}
+
+
+        }
+
+        #region MessagingEventHandlers
+        
         private void SendFileButtonClick(object sender, RoutedEventArgs e)
         {
             var fileDialog = new OpenFileDialog
@@ -425,79 +439,133 @@ namespace Client.Wpf.Windows
 //                MessageBox.Show(this, $"Try again later ({ex.Message})");
 //            }
         }
-
-        private void ShowNewGroupContactsSelectorButtonClick(object sender, RoutedEventArgs e)
-        {
-            NewGroupContactsSelector.Visibility = Visibility.Visible;
-        }
-
-        private void HideContactsSelectorGridClicked(object sender, MouseButtonEventArgs e)
-        {
-            NewGroupContactsSelector.Visibility = Visibility.Hidden;
-            ContactsListBox.UnselectAll();
-        }
-
-        private async void MessageShowSenderInfoClick(object sender, RoutedEventArgs e)
-        {
-            var sendedMessage = (Message)((FrameworkElement)sender).DataContext;
-//            var chatUserViewModel = SessionManager.UsersDataCache.FirstOrDefault(user => user.Email == sendedMessage.SenderEmail);
-            
-//            if (chatUserViewModel == null)
-//            {
-//                SessionManager.
-//            }
-
-            var userData = await SessionManager.GetUsersData(sendedMessage.SenderEmail);
-            _dataContext.SelectedContactUser = new UserViewModel(userData.Email, userData.Claims);
-//            _dataContext.SelectedContactUser = Utility.SessionManager.GetUsersData(sendedMessage.SenderEmail);
-            ProfileInfo.Visibility = Visibility.Visible;
-//            RequestProvider.UsersData
-//            SelectedContactUser
-        }
         
-        private void HideProfileInfoGridClicked(object sender, MouseButtonEventArgs e)
-        {
-            _dataContext.SelectedContactUser = null;
-            ProfileInfo.Visibility = Visibility.Hidden;
-            ProfileEditor.Visibility = Visibility.Hidden;
-            ContactsList.Visibility = Visibility.Hidden;
-        }
-
-        private void ShowProfileEditorButtonClick(object sender, RoutedEventArgs e)
-        {
-//            var chatUserViewModel = new ChatUserViewModel
-//            {
-//                Id = _dataContext.User.Id,
-//                Email = _dataContext.User.Email,
-//                Claims = _dataContext.User.Claims
-//            };
-//            _dataContext.SelectedContactUser = chatUserViewModel;
-//            _dataContext.SelectedContactUser = chatUserViewModel;
-//            ProfileInfo.Visibility = Visibility.Visible;
-            ProfileEditor.Visibility = Visibility.Visible;
-        }
-
         private void MessagesListBox_OnDrop(object sender, DragEventArgs e)
         {
 
         }
-
-        private void ContactsButton_OnClick(object sender, RoutedEventArgs e)
+        
+        private void SendMessageButtonClick(object sender, RoutedEventArgs e)
         {
-            ContactsList.Visibility = Visibility.Visible;
-        }
-
-        private void RemoveSelectedContactMenuItemClick(object sender, RoutedEventArgs e)
-        {
-            if (ContactsListBox.SelectedItem == null)
+            var message = ChatTextBox.Text;
+            if (string.IsNullOrEmpty(message))
+            {
                 return;
-
-            var selectedUser = (UserViewModel) ContactsListBox.SelectedItem;
-
-            SessionManager.RemoveFromContacts(selectedUser.Email);
-            _dataContext.Contacts.Remove(selectedUser);
+            }
             
-            
+            Task.Factory.StartNew(() =>
+            {
+                var encryptedString = new Pgp().EncryptString(message, 
+                    _dataContext.SelectedGroup.UsersPublicKeys.Select(user => user.PublicKey));
+                
+                RequestProvider.SendMessage(_dataContext.SelectedGroup.Id, encryptedString);
+
+                Dispatcher.Invoke(() =>
+                {
+                    var decryptedMessage = new Message
+                    {
+                        Sended = DateTime.Now,
+                        SenderEmail = _dataContext.User.Email,
+                        Content = message
+                    };
+
+                    _dataContext.SelectedGroupDecryptedMessages.Add(decryptedMessage);
+                    _dataContext.SelectedGroup.Messages.Add(new Message
+                    {
+                        Sended = decryptedMessage.Sended,
+                        SenderEmail = decryptedMessage.SenderEmail,
+                        Content = encryptedString
+                    });
+                });
+            });
+
+//            MessagesListBox.GetValue(ScrollViewer.Vert, MessagesScrollViewer.ScrollableHeight);
+//            MessagesListBox.SetValue(ScrollViewer.VerticalOffsetProperty, MessagesScrollViewer.ScrollableHeight);
+            ChatTextBox.Text = string.Empty;
+            ChatTextBox.Focus();
         }
+        
+
+        #endregion
+
+        #region ConctactsActionsEventHandlers
+        
+        private async void AddToContacts(string email)
+        {
+            try
+            {
+                var contactUser = await SessionManager.AddToContacts(email);
+                _dataContext.Contacts.Add(new UserViewModel(contactUser.Email, contactUser.Claims));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message);
+            }
+        }
+
+        private void RemoveFromContacts(string email)
+        {
+            try
+            {
+                SessionManager.RemoveFromContacts(email);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message);
+            }
+        }
+
+        private void ChangeContactStatus_OnClick(object sender, RoutedEventArgs e)
+        {
+            var user = (UserViewModel) ProfileInfo.DataContext;
+            if (user.Is)
+            {
+                RemoveFromContacts(user.Email);
+                _dataContext.Contacts.Remove(_dataContext.Contacts.First(contact => contact.Email == user.Email));
+            }
+            else
+            {
+                AddToContacts(user.Email);
+            }
+        }
+
+        private void ContactsListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var user = (UserViewModel)ContactsListBox.SelectedItem;
+            
+            ContactsListBox.UnselectAll();
+            ContactsList.Visibility = Visibility.Hidden;
+
+            ProfileInfo.DataContext = user;
+            ProfileInfo.Visibility = Visibility.Visible;
+        }
+
+        #endregion
+        
+        #region HidePopupFormsEventHandlers
+
+        private void HideNewGroupFormClicked(object sender, MouseButtonEventArgs e)
+        {
+            NewGroupForm.Visibility = Visibility.Hidden;
+        }
+
+        private void HideContactsListClicked(object sender, MouseButtonEventArgs e)
+        {
+            ContactsList.Visibility = Visibility.Hidden;
+        }
+
+        private void HideProfileInfoClicked(object sender, MouseButtonEventArgs e)
+        {
+            _dataContext.SelectedContactUser = null;
+            ProfileInfo.Visibility = Visibility.Hidden;
+        }
+
+        private void HideProfileEditorClicked(object sender, MouseButtonEventArgs e)
+        {
+            _dataContext.SelectedContactUser = null;
+            ProfileEditor.Visibility = Visibility.Hidden;
+        }
+
+        #endregion
     }
 }

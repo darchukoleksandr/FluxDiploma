@@ -15,30 +15,8 @@ namespace Client.Wpf.Utility
         public static IEnumerable<Group> UserGroups { get; set; }
 
         public static ICollection<ChatUserViewModel> UserContacts { get; set; }
-        /// <summary>
-        /// Stores profile data for all users
-        /// </summary>
-        public static IEnumerable<ChatUserViewModel> UsersDataCache { get; set; }
 
-        public static async void UpdateUserContacts()
-        {
-            var operationResponse = await RequestProvider.GetUsersData(LoggedUser.Contacts.ToArray());
-
-            UserContacts = operationResponse;
-        }
-
-//        public static void UpdateUserGroups()
-//        {
-//            var operationResponse = RequestProvider.UpdateGroupsList(
-//                LoggedUser.PrivateKeys.Select(info => info.GroupId).ToArray());
-//            
-//            if (!operationResponse.IsErrorOccured())
-//            {
-//                UserGroups = operationResponse.Response;
-//            }
-//        }
-
-        public static async void AddToContacts(string contactEmail)
+        public static async Task<ChatUserViewModel> AddToContacts(string contactEmail)
         {
             var operationResponse = await RequestProvider.AddToContacts(contactEmail);
 
@@ -46,12 +24,13 @@ namespace Client.Wpf.Utility
             {
                 throw new Exception(operationResponse.Error);
             }
+            else
+            {
+                UserContacts.Add(operationResponse.Response);
+                LoggedUser.Contacts.Add(contactEmail);
+            }
 
-            LoggedUser.Contacts.Add(contactEmail);
-            UserContacts.Add(operationResponse.Response);
-
-//            UpdateUserContacts();
-//            UsersDataCache = UsersDataCache.Intersect(operationResponse.Response);
+            return operationResponse.Response;
         }
 
         public static async Task<ChatUserViewModel> GetUsersData(string userEmail)
@@ -96,7 +75,14 @@ namespace Client.Wpf.Utility
 
         public static void RemoveFromContacts(string contactEmail)
         {
+            var contact = UserContacts.First(user => user.Email == contactEmail);
             RequestProvider.RemoveFromContacts(contactEmail);
+            UserContacts.Remove(contact);
+        }
+
+        public static Task<IEnumerable<SearchResult>> Search(string groupName)
+        {
+            return RequestProvider.Search(groupName);
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Cinchoo.PGP;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto;
@@ -15,7 +14,7 @@ using PgpKeyPair = Domain.Models.PgpKeyPair;
 
 namespace Domain.Crypto
 {
-    public class Pgp : ChoPGPEncryptDecrypt
+    public class Pgp
     {
         private static byte[] Compress(byte[] clearData, string fileName, CompressionAlgorithmTag algorithm)
         {
