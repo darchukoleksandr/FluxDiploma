@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Auth0.Core.Exceptions;
 using DAL.MongoDb.Repository;
 using Domain.Crypto;
@@ -16,7 +17,7 @@ using Org.BouncyCastle.Bcpg;
 
 namespace Host.Web.Hubs
 {
-    [Authorize]
+    [System.Web.Http.Authorize]
     public class ChatHub : Hub
     {
         private static readonly string[] ScopesToSave = { "nickname", "picture", "gender", "firstname", "lastname" };
@@ -106,6 +107,12 @@ namespace Host.Web.Hubs
             Console.WriteLine($"User connected: {user.Email}");
 
             return result;
+        }
+
+        [AllowAnonymous]
+        public int CountOnline()
+        {
+            return ConnectedUsers.Count;
         }
 
         public async void LeaveGroup(Guid groupId)
@@ -332,6 +339,14 @@ namespace Host.Web.Hubs
             Console.WriteLine($"Search: {pattern} returned ({result.Count} match)!");
 
             return result;
+        }
+
+        public async void JoinChannel(Guid channelId)
+        {
+            var userEmail = ConnectedUsers[Context.ConnectionId];
+            var result = await GroupRepository.GetByIdIncludeMessages(channelId);
+            await UserRepository.AddPrivateKey(userEmail, null, channelId);
+            Clients.Caller.JoinChannel(result);
         }
 
         public async void CreateChannel(string owner, string name)

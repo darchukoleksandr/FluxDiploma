@@ -63,16 +63,17 @@ namespace Client.Wpf.ViewModels
             
         public ObservableCollection<UserViewModel> Contacts { get; set; } = new ObservableCollection<UserViewModel>();
 
-        public IEnumerable<Group> Groups
-        {
-            get => _groups;
-            set
-            {
-                _groups = value;
-                OnPropertyChanged(nameof(Groups));
-            }
-        }
-        private IEnumerable<Group> _groups;
+        public ObservableCollection<Group> Groups { get; set; }
+//        public IEnumerable<Group> Groups
+//        {
+//            get => _groups;
+//            set
+//            {
+//                _groups = value;
+//                OnPropertyChanged(nameof(Groups));
+//            }
+//        }
+//        private IEnumerable<Group> _groups;
 
         public User User
         {

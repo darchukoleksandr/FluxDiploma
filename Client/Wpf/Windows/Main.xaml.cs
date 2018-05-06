@@ -60,6 +60,14 @@ namespace Client.Wpf.Windows
         private void ConfigureRequestHandlers()
         {
             RequestProvider.AppendGlobalConnectionCloseHandler(OnConnectionClosed);
+            RequestProvider.AppendJoinChannelHandler(group =>
+            {
+                SessionManager.AddPrivateKey(group.Id, null);
+
+//                var result = new List<Group>(_dataContext.Groups) {group};
+//                _dataContext.Groups = result;
+                _dataContext.Groups.Add(group);
+            });
             RequestProvider.AppendRoomInviteHandler((group, privateKey) =>
             {
                 SessionManager.AddPrivateKey(group.Id, privateKey);
@@ -78,8 +86,9 @@ namespace Client.Wpf.Windows
                     group.Name = group.UsersPublicKeys.First(key => key.Email != SessionManager.LoggedUser.Email).Email;
                 }
 
-                var result = new List<Group>(_dataContext.Groups) {group};
-                _dataContext.Groups = result;
+//                var result = new List<Group>(_dataContext.Groups) {group};
+//                _dataContext.Groups = result;
+                _dataContext.Groups.Add(group);
             });
             RequestProvider.AppendUserLeftGroupHandler((groupId, userEmail) =>
             {

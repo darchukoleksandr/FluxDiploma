@@ -18,6 +18,11 @@ namespace Client.Wpf
             HubProxy.On("CloseConnection", action);
         }
 
+        public static void AppendJoinChannelHandler(Action<Group> action)
+        {
+            HubProxy.On<Group>("JoinChannel", action);
+        }
+
         public static void AppendRoomInviteHandler(Action<Group, byte[]> action)
         {
             HubProxy.On<Group, byte[]>("RoomInvite", action);

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using Auth0.Owin;
 using Host.Web;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
-using Microsoft.Owin.Hosting;
+using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.Security.Jwt;
+using Microsoft.Owin.StaticFiles;
 using Owin;
 using TokenValidationParameters = System.IdentityModel.Tokens.TokenValidationParameters;
 
@@ -13,14 +15,6 @@ namespace Host.Web
 {
     public class Startup
     {
-        private static void Main()
-        {
-            using (WebApp.Start<Startup>("http://localhost:42512/")) 
-            {
-                Console.ReadLine();
-            }
-        }
-
         public void Configuration(IAppBuilder app)
         {
 
@@ -33,7 +27,23 @@ namespace Host.Web
                     ValidIssuer = "https://darchukoleksandr.eu.auth0.com/",
                     IssuerSigningKeyResolver = (token, securityToken, identifier, parameters) => keyResolver.GetSigningKey(identifier)
                 }
-            }); 
+            });
+
+            var physicalFileSystem = new PhysicalFileSystem("");
+
+            app.UseFileServer(new FileServerOptions
+            {
+                RequestPath = PathString.Empty,
+                EnableDefaultFiles = true,
+                FileSystem = physicalFileSystem,
+                StaticFileOptions =
+                {
+                    RequestPath = new PathString("/*"),
+                    FileSystem = physicalFileSystem,
+                    ServeUnknownFileTypes = true
+                },
+                DefaultFilesOptions = { DefaultFileNames = new[] { "index.html" } }
+            });
 
             app.MapSignalR(new HubConfiguration
             {
