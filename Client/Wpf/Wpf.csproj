@@ -58,6 +58,9 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Auth0.OidcClient, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Auth0.OidcClient.WPF.1.2.0\lib\net452\Auth0.OidcClient.dll</HintPath>
@@ -205,6 +208,7 @@
     <Compile Include="Utility\SystemWebBrowser.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\MessageTypeDataTemplateSelector.cs" />
+    <Compile Include="ViewModels\UserViewModel.cs" />
     <Compile Include="Windows\Main.xaml.cs">
       <DependentUpon>Main.xaml</DependentUpon>
     </Compile>
@@ -247,6 +251,9 @@
       <Project>{da999b11-c0bc-46bb-a43e-1b47aa34ccdd}</Project>
       <Name>Domain</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

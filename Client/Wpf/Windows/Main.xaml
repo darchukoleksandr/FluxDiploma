@@ -167,7 +167,7 @@
         </Grid>
 
         <!--    Options area    -->
-        <StackPanel HorizontalAlignment="Left" Width="200">
+        <StackPanel Name="OptionsPanel" HorizontalAlignment="Left" Width="200">
             <Expander
                 ExpandDirection="Down">
                 <Expander.Header>
@@ -186,7 +186,7 @@
                         <TextBox TextWrapping="Wrap" Grid.Column="0"
                                  Name="SearchTextBox" 
                                  TextChanged="SearchTextBox_OnTextChanged"
-                                 materialDesign:HintAssist.Hint="Find user or channel"
+                                 materialDesign:HintAssist.Hint="Find user"
                                  Height="35" Margin="10,0,0,0" Width="137"
                                  VerticalAlignment="Top" HorizontalAlignment="Left" />
                         <Button Grid.Column="1"
@@ -220,7 +220,7 @@
                     </ListBox>
                     <Button Content="Show my profile" 
                             Style="{StaticResource MaterialDesignFlatButton}"
-                            Click="ShowProfileEditorButtonClick"
+                            Click="ShowPersonalInfoClick"
                             VerticalAlignment="Top" 
                             HorizontalAlignment="Left"/>
                     <Button Content="Create room" 
@@ -325,7 +325,7 @@
                           Grid.Row="1" Grid.Column="1">
                     <ComboBoxItem>Open</ComboBoxItem>
                     <ComboBoxItem>Closed</ComboBoxItem>
-                    <ComboBoxItem>Channel</ComboBoxItem>
+                    <!--<ComboBoxItem>Channel</ComboBoxItem>-->
 <!--                    <ComboBoxItem>Secret</ComboBoxItem>-->
                 </ComboBox>
                 <Label Grid.Row="2" Grid.Column="0">Group name:</Label>
@@ -463,8 +463,8 @@
             </Grid>
         </Grid>
 
-        <Grid Visibility="Hidden" Name="ProfileEditor">
-<!--        <Grid Name="ProfileEditor">-->
+        <!--<Grid Visibility="Hidden" Name="ProfileEditor">
+--><!--        <Grid Name="ProfileEditor">--><!--
             <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
                   MouseUp="HideProfileEditorClicked">
@@ -491,11 +491,11 @@
                         Width="40" 
                         MouseUp="DownloadFileImageClick"/>
                 </Button>
-<!--                <TextBox Grid.Row="0" Grid.Column="1" -->
+--><!--                <TextBox Grid.Row="0" Grid.Column="1" -->
 <!--                           materialDesign:HintAssist.Hint="Username"-->
 <!--                           Width="200" Height="Auto"-->
 <!--                           Text="{Binding SelectedContactUser.UserName}" -->
-<!--                           TextWrapping="Wrap" Margin="25,15,25,50" />-->
+<!--                           TextWrapping="Wrap" Margin="25,15,25,50" />--><!--
                 <TextBox Grid.Row="0" Grid.Column="1" 
                            materialDesign:HintAssist.Hint="Phone"
                            Width="200" Height="Auto"
@@ -512,7 +512,7 @@
                            Text="{Binding SelectedContactUser.LastName}" 
                            TextWrapping="Wrap" Margin="25,53,25,10"/>
             </Grid>
-        </Grid>
+        </Grid>-->
 
     </Grid>
 </Window>

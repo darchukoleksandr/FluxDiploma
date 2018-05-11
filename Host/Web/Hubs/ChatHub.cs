@@ -341,37 +341,31 @@ namespace Host.Web.Hubs
             return result;
         }
 
-        public async void JoinChannel(Guid channelId)
-        {
-            var userEmail = ConnectedUsers[Context.ConnectionId];
-            var result = await GroupRepository.GetByIdIncludeMessages(channelId);
-            await UserRepository.AddPrivateKey(userEmail, null, channelId);
-            Clients.Caller.JoinChannel(result);
-        }
+        //public async void JoinChannel(Guid channelId)
+        //{
+        //    var userEmail = ConnectedUsers[Context.ConnectionId];
+        //    var result = await GroupRepository.GetByIdIncludeMessages(channelId);
+        //    await UserRepository.AddPrivateKey(userEmail, null, channelId);
+        //    Clients.Caller.JoinChannel(result);
+        //}
 
-        public async void CreateChannel(string owner, string name)
-        {
-            var result = new Group
-            {
-                Owner = owner,
-                Name = name,
-                Type = GroupType.Channel
-            };
+        //public async void CreateChannel(string owner, string name)
+        //{
+        //    var result = new Group
+        //    {
+        //        Owner = owner,
+        //        Name = name,
+        //        Type = GroupType.Channel
+        //    };
             
-            await GroupRepository.Create(result);
+        //    await GroupRepository.Create(result);
 
-            Console.WriteLine($"Channel {result.Name} created!");
-        }
+        //    Console.WriteLine($"Channel {result.Name} created!");
+        //}
 
         public async void CreateGroup(string owner, string name, GroupType groupType, IEnumerable<string> receipents)
         {
             Console.WriteLine($"CreateGroup starting!");
-            
-            if (groupType == GroupType.Channel)
-            {
-                CreateChannel(owner, name);
-                return;
-            }
             
             var userGroupPrivateKeys = new List<UserGroupPrivateKeyInfo>();
             var groupUsers = new List<GroupUserPublicKey>();
@@ -414,7 +408,7 @@ namespace Host.Web.Hubs
                 }
             }
 
-            Console.WriteLine($"Chat room {result.Name} created with {groupUsers.Count} users!");
+            Console.WriteLine($"Group {result.Name} created with {groupUsers.Count} users!");
         }
 
         //TODO unused?

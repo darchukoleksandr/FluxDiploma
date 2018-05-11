@@ -44,7 +44,7 @@ namespace Client.Wpf.Windows
 
                     break;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
 //                     ignored 
                 }
@@ -99,12 +99,7 @@ namespace Client.Wpf.Windows
 
             try
             {
-                //TODO dislocate to session
-                var connectionResponse = await RequestProvider.Connect(accesToken);
-
-                SessionManager.LoggedUser = connectionResponse.User;
-                SessionManager.UserGroups = connectionResponse.Groups;
-                SessionManager.UserContacts = connectionResponse.Contacts;
+                await SessionManager.Connect(accesToken);
             }
             catch (HttpRequestException) // No connection with host
             {
@@ -119,10 +114,21 @@ namespace Client.Wpf.Windows
                     Dispatcher.Invoke(() => InfoTextBlock.Text = "Can not connect to server!");
                     await Task.Delay(3000);
                 }
+
                 if (e.Message.StartsWith("StatusCode: 401")) // Token expired
                 {
                     await IsolatedStorageManager.DeleteOauthTokens();
                 }
+
+                throw;
+            }
+            catch (Exception e)
+            {
+                if (e.Message.StartsWith("Unauthorized")) // Token expired
+                {
+                    await IsolatedStorageManager.DeleteOauthTokens();
+                }
+
                 throw;
             }
         }

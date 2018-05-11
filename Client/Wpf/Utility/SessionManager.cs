@@ -41,6 +41,15 @@ namespace Client.Wpf.Utility
 //            UsersDataCache = UsersDataCache.Intersect(operationResponse.Response);
         }
 
+        public static async Task Connect(string accesToken)
+        {
+            var connectionResponse = await RequestProvider.Connect(accesToken);
+
+            SessionManager.LoggedUser = connectionResponse.User;
+            SessionManager.UserGroups = connectionResponse.Groups;
+            SessionManager.UserContacts = connectionResponse.Contacts;
+        }
+
         public static async Task LogOut()
         {
             await IsolatedStorageManager.DeleteOauthTokens();

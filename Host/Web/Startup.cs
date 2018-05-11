@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using Auth0.Owin;
 using Host.Web;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin;
 using Microsoft.Owin.FileSystems;
+using Microsoft.Owin.Hosting;
 using Microsoft.Owin.Security.Jwt;
 using Microsoft.Owin.StaticFiles;
 using Owin;
@@ -15,20 +15,16 @@ namespace Host.Web
 {
     public class Startup
     {
+        private static void Main()
+        {
+            using (WebApp.Start<Startup>("http://localhost:5000/")) 
+            {
+                Console.ReadLine();
+            }
+        }
+
         public void Configuration(IAppBuilder app)
         {
-
-            var keyResolver = new OpenIdConnectSigningKeyResolver("https://darchukoleksandr.eu.auth0.com/");
-            app.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
-            {
-                TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidAudience = "https://darchukoleksandr.eu.auth0.com/userinfo",
-                    ValidIssuer = "https://darchukoleksandr.eu.auth0.com/",
-                    IssuerSigningKeyResolver = (token, securityToken, identifier, parameters) => keyResolver.GetSigningKey(identifier)
-                }
-            });
-
             var physicalFileSystem = new PhysicalFileSystem("");
 
             app.UseFileServer(new FileServerOptions
@@ -45,6 +41,17 @@ namespace Host.Web
                 DefaultFilesOptions = { DefaultFileNames = new[] { "index.html" } }
             });
 
+            var keyResolver = new OpenIdConnectSigningKeyResolver("https://darchukoleksandr.eu.auth0.com/");
+            app.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
+            {
+                TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidAudience = "https://darchukoleksandr.eu.auth0.com/userinfo",
+                    ValidIssuer = "https://darchukoleksandr.eu.auth0.com/",
+                    IssuerSigningKeyResolver = (token, securityToken, identifier, parameters) => keyResolver.GetSigningKey(identifier)
+                }
+            });
+            
             app.MapSignalR(new HubConfiguration
             {
                 EnableDetailedErrors = true

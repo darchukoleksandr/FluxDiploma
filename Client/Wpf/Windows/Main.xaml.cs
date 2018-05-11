@@ -40,15 +40,16 @@ namespace Client.Wpf.Windows
         {
             _dataContext.User = SessionManager.LoggedUser;
             _dataContext.Contacts.AddRange(SessionManager.UserContacts.Select(user => new UserViewModel(user.Email, user.Claims)));
-            _dataContext.Groups = new ObservableCollection<Group>(SessionManager.UserGroups.Select(group =>
-            {
-                if (group.Type == GroupType.Personal)
-                {
-                    group.Name = group.UsersPublicKeys.First(key => key.Email != SessionManager.LoggedUser.Email).Email;
-                }
+            _dataContext.Groups.AddRange(SessionManager.UserGroups);
+            //_dataContext.Groups = new ObservableCollection<Group>(SessionManager.UserGroups.Select(group =>
+            //{
+                //if (group.Type == GroupType.Personal)
+                //{
+                    //group.Name = group.UsersPublicKeys.First(key => key.Email != SessionManager.LoggedUser.Email).Email;
+                //}
 
-                return group;
-            }));
+                //return group;
+            //}));
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -60,14 +61,12 @@ namespace Client.Wpf.Windows
         private void ConfigureRequestHandlers()
         {
             RequestProvider.AppendGlobalConnectionCloseHandler(OnConnectionClosed);
-            RequestProvider.AppendJoinChannelHandler(group =>
-            {
-                SessionManager.AddPrivateKey(group.Id, null);
+            //RequestProvider.AppendJoinChannelHandler(group =>
+            //{
+            //    SessionManager.AddPrivateKey(group.Id, null);
 
-//                var result = new List<Group>(_dataContext.Groups) {group};
-//                _dataContext.Groups = result;
-                _dataContext.Groups.Add(group);
-            });
+            //    _dataContext.Groups.Add(group);
+            //});
             RequestProvider.AppendRoomInviteHandler((group, privateKey) =>
             {
                 SessionManager.AddPrivateKey(group.Id, privateKey);
@@ -88,7 +87,7 @@ namespace Client.Wpf.Windows
 
 //                var result = new List<Group>(_dataContext.Groups) {group};
 //                _dataContext.Groups = result;
-                _dataContext.Groups.Add(group);
+                Dispatcher.Invoke(() => _dataContext.Groups.Add(group));
             });
             RequestProvider.AppendUserLeftGroupHandler((groupId, userEmail) =>
             {
@@ -179,12 +178,10 @@ namespace Client.Wpf.Windows
                 _dataContext.User.Email
             };
 
-            var a = (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString());
+            var groupType = (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString());
 
             RequestProvider.CreateGroup(_dataContext.User.Email, 
-                NewRoomNameTextBox.Text,
-                (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString()),
-                receipents);
+                NewRoomNameTextBox.Text, groupType, receipents);
 
             HideContactsListClicked(sender, null);
         }
@@ -328,11 +325,11 @@ namespace Client.Wpf.Windows
             ProfileInfo.Visibility = Visibility.Visible;
         }
 
-        private void ShowProfileEditorButtonClick(object sender, RoutedEventArgs e)
-        {
-            _dataContext.SelectedContactUser = new UserViewModel(_dataContext.User.Email, _dataContext.User.Claims);
-            ProfileEditor.Visibility = Visibility.Visible;
-        }
+        //private void ShowProfileEditorButtonClick(object sender, RoutedEventArgs e)
+        //{
+        //    _dataContext.SelectedContactUser = new UserViewModel(_dataContext.User.Email, _dataContext.User.Claims);
+        //    ProfileEditor.Visibility = Visibility.Visible;
+        //}
 
         private void ContactsButton_OnClick(object sender, RoutedEventArgs e)
         {
@@ -569,12 +566,17 @@ namespace Client.Wpf.Windows
             ProfileInfo.Visibility = Visibility.Hidden;
         }
 
-        private void HideProfileEditorClicked(object sender, MouseButtonEventArgs e)
-        {
-            _dataContext.SelectedContactUser = null;
-            ProfileEditor.Visibility = Visibility.Hidden;
-        }
+        //private void HideProfileEditorClicked(object sender, MouseButtonEventArgs e)
+        //{
+        //    _dataContext.SelectedContactUser = null;
+        //    ProfileEditor.Visibility = Visibility.Hidden;
+        //}
 
         #endregion
+
+        private async void ShowPersonalInfoClick(object sender, RoutedEventArgs e)
+        {
+            await ShowUserProfileInfo(_dataContext.User.Email);
+        }
     }
 }
