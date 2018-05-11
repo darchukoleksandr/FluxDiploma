@@ -1,0 +1,38 @@
+[
+  {
+    "outputFileName": "Content/js/jquery.sticky.min.js",
+    "inputFiles": [
+      "Content/js/jquery.sticky.js"
+    ]
+  },
+  {
+    "outputFileName": "Content/js/front.min.js",
+    "inputFiles": [
+      "Content/js/front.js"
+    ]
+  },
+  {
+    "outputFileName": "Content/js/jquery.cookie.min.js",
+    "inputFiles": [
+      "Content/js/jquery.cookie.js"
+    ]
+  },
+  {
+    "outputFileName": "Content/js/jquery.signalR-2.2.3.min.js",
+    "inputFiles": [
+      "Content/js/jquery.signalR-2.2.3.js"
+    ]
+  },
+  {
+    "outputFileName": "Content/css/themify-icons.min.css",
+    "inputFiles": [
+      "Content/css/themify-icons.css"
+    ]
+  },
+  {
+    "outputFileName": "Content/css/style.default.min.css",
+    "inputFiles": [
+      "Content/css/style.default.css"
+    ]
+  }
+]

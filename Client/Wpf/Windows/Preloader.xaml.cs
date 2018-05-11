@@ -44,7 +44,7 @@ namespace Client.Wpf.Windows
 
                     break;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
 //                     ignored 
                 }

@@ -202,8 +202,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\style.default.min.css">
+      <DependentUpon>style.default.css</DependentUpon>
+    </Content>
+    <Content Include="Content\css\themify-icons.min.css">
+      <DependentUpon>themify-icons.css</DependentUpon>
+    </Content>
     <Content Include="Content\js\bootstrap.min.js" />
-    <Content Include="Content\css\custom.css" />
     <Content Include="Content\css\font-awesome-animation.min.css" />
     <Content Include="Content\fonts\fontawesome-webfont.svg" />
     <Content Include="Content\fonts\themify.svg" />
@@ -234,21 +239,32 @@
     <Content Include="Content\img\sprites\sprite.png" />
     <Content Include="Content\img\startup-room.jpg" />
     <Content Include="Content\img\template-homepage.png" />
+    <Content Include="Content\js\front.min.js">
+      <DependentUpon>front.js</DependentUpon>
+    </Content>
+    <Content Include="Content\js\jquery.cookie.min.js">
+      <DependentUpon>jquery.cookie.js</DependentUpon>
+    </Content>
+    <Content Include="Content\js\jquery.signalR-2.2.3.min.js">
+      <DependentUpon>jquery.signalR-2.2.3.js</DependentUpon>
+    </Content>
+    <Content Include="Content\js\jquery.sticky.min.js">
+      <DependentUpon>jquery.sticky.js</DependentUpon>
+    </Content>
+    <Content Include="favicon.ico" />
     <Content Include="index.html" />
     <Content Include="Content\js\front.js" />
     <Content Include="Content\js\gmaps.js" />
     <Content Include="Content\js\jquery-1.11.0.min.js" />
     <Content Include="Content\js\jquery-3.3.1.js" />
     <Content Include="Content\js\jquery-3.3.1.min.js" />
-    <Content Include="Content\js\jquery-3.3.1.slim.js" />
-    <Content Include="Content\js\jquery-3.3.1.slim.min.js" />
     <Content Include="Content\js\jquery.cookie.js" />
     <Content Include="Content\js\jquery.scrollTo.min.js" />
     <Content Include="Content\js\jquery.signalR-2.2.3.js" />
-    <Content Include="Content\js\jquery.signalR-2.2.3.min.js" />
     <Content Include="Content\js\jquery.sticky.js" />
     <Content Include="Content\js\main.js" />
     <Content Include="Content\js\respond.min.js" />
+    <None Include="bundleconfig.json" />
     <None Include="Content\js\jquery-3.3.1.intellisense.js" />
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\FluxDiploma - Web Deploy.pubxml" />
@@ -265,8 +281,6 @@
     <Content Include="Content\fonts\themify.eot" />
     <Content Include="Content\fonts\themify.ttf" />
     <Content Include="Content\fonts\themify.woff" />
-    <Content Include="Content\js\jquery-3.3.1.min.map" />
-    <Content Include="Content\js\jquery-3.3.1.slim.min.map" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Web.config">
