@@ -25,19 +25,12 @@ namespace Host.Web
 
         public void Configuration(IAppBuilder app)
         {
-            var physicalFileSystem = new PhysicalFileSystem("");
+            var physicalFileSystem = new PhysicalFileSystem(".");
 
             app.UseFileServer(new FileServerOptions
             {
-                RequestPath = PathString.Empty,
                 EnableDefaultFiles = true,
                 FileSystem = physicalFileSystem,
-                StaticFileOptions =
-                {
-                    RequestPath = new PathString("/*"),
-                    FileSystem = physicalFileSystem,
-                    ServeUnknownFileTypes = true
-                },
                 DefaultFilesOptions = { DefaultFileNames = new[] { "index.html" } }
             });
 
