@@ -463,56 +463,5 @@
             </Grid>
         </Grid>
 
-        <!--<Grid Visibility="Hidden" Name="ProfileEditor">
---><!--        <Grid Name="ProfileEditor">--><!--
-            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                  Opacity="0.5" Background="DarkGray"
-                  MouseUp="HideProfileEditorClicked">
-            </Grid>
-            <Grid Margin="100, 50, 100, 70" Background="White" 
-                  MaxWidth="400" ShowGridLines="True" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition MinWidth="150" Width="1*"/>
-                    <ColumnDefinition Width="3*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition></RowDefinition>
-                    <RowDefinition></RowDefinition>
-                    <RowDefinition></RowDefinition>
-                </Grid.RowDefinitions>
-                <Image Height="100" Width="100" 
-                       Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
-                       Source="{Binding SelectedContactUser.Picture}"/>
-                <Button Grid.Row="1" Grid.Column="0" 
-                        Margin="25,55,25,0">
-                    <materialDesign:PackIcon
-                        Kind="Upload"
-                        Height="40"
-                        Width="40" 
-                        MouseUp="DownloadFileImageClick"/>
-                </Button>
---><!--                <TextBox Grid.Row="0" Grid.Column="1" -->
-<!--                           materialDesign:HintAssist.Hint="Username"-->
-<!--                           Width="200" Height="Auto"-->
-<!--                           Text="{Binding SelectedContactUser.UserName}" -->
-<!--                           TextWrapping="Wrap" Margin="25,15,25,50" />--><!--
-                <TextBox Grid.Row="0" Grid.Column="1" 
-                           materialDesign:HintAssist.Hint="Phone"
-                           Width="200" Height="Auto"
-                           Text="{Binding SelectedContactUser.Phone}" 
-                           TextWrapping="Wrap" Margin="25,55,25,10" />
-                <TextBox Grid.Row="1" Grid.Column="1" 
-                           materialDesign:HintAssist.Hint="First name"
-                           Width="200" Height="Auto"
-                           Text="{Binding SelectedContactUser.FirstName}" 
-                           TextWrapping="Wrap" Margin="25,15,25,48"/>
-                <TextBox Grid.Row="1" Grid.Column="1" 
-                           materialDesign:HintAssist.Hint="Last name"
-                           Width="200" Height="Auto"
-                           Text="{Binding SelectedContactUser.LastName}" 
-                           TextWrapping="Wrap" Margin="25,53,25,10"/>
-            </Grid>
-        </Grid>-->
-
     </Grid>
 </Window>

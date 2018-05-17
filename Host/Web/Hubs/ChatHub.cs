@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -41,15 +42,11 @@ namespace Host.Web.Hubs
 
         public async Task<ConnectionData> Connect()
         {
-//            _logger.WriteVerbose($"Connection opened: {Context.ConnectionId}");
-            var result = new ConnectionData();
-
-            var accesToken = Context.Headers.Get("Authorization").Replace("Bearer ", String.Empty);
+            var accesToken = Context.Headers.Get("Authorization").Replace("Bearer ", string.Empty);
 
             if (string.IsNullOrEmpty(accesToken))
             {
-                Console.WriteLine("No access token provided!");
-                throw new ArgumentException("NO ACCESS TOKEN");
+                throw new BadRequestException("No access token provided!");
             }
 
             IEnumerable<TypeValueClaim> userClaims;
@@ -57,9 +54,8 @@ namespace Host.Web.Hubs
             {
                 userClaims = await Jwt.ReadUserClaims(accesToken);
             }
-            catch (ApiException)
+            catch (ApiException e)
             {
-                Console.WriteLine();
                 throw new ApiException(HttpStatusCode.Unauthorized);
             }
 
@@ -78,8 +74,12 @@ namespace Host.Web.Hubs
                 await UserRepository.Create(user);
             }
 
-            result.User = user;
-            result.Groups = new List<Group>();
+            var result = new ConnectionData
+            {
+                User = user,
+                Groups = new List<Group>()
+            };
+
             foreach (var chatRoomId in user.PrivateKeys)
             {
                 try

@@ -20,12 +20,6 @@ namespace Client.Wpf.Windows
             StartSession();
         }
 
-//        public Preloader(string message)
-//        {
-//            InitializeComponent();
-//            StartSession();
-//        }
-
         private async void StartSession()
         {
             while (true)
