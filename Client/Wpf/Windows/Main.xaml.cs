@@ -88,6 +88,11 @@ namespace Client.Wpf.Windows
 //                _dataContext.Groups = result;
                 Dispatcher.Invoke(() => _dataContext.Groups.Add(group));
             });
+            RequestProvider.AppendUserJoinedGroupHandler((groupId, publicKey) =>
+            {
+                var groupJoined = _dataContext.Groups.First(group => group.Id == groupId);
+                groupJoined.UsersPublicKeys.Add(publicKey);
+            });
             RequestProvider.AppendUserLeftGroupHandler((groupId, userEmail) =>
             {
                 var sourceGroup = _dataContext.Groups.First(group => group.Id == groupId);
@@ -133,16 +138,16 @@ namespace Client.Wpf.Windows
             );
         }
         
-        private async void OnConnectionClosed()
+        private void OnConnectionClosed()
         {
-            await SessionManager.LogOut();
+            SessionManager.LogOut();
         }
 
         #endregion
 
-        private async void LogOutButtonClick(object sender, RoutedEventArgs e)
+        private void LogOutButtonClick(object sender, RoutedEventArgs e)
         {
-            await SessionManager.LogOut();
+            SessionManager.LogOut();
         }
 
         private void DisableSendActions()
@@ -366,7 +371,7 @@ namespace Client.Wpf.Windows
                 return;
             }
 
-            //_dataContext.SelectedGroupDecryptedMessages.Clear();
+//            _dataContext.SelectedGroupDecryptedMessages.Clear();
             //_dataContext.SelectedGroup = (Group) SearchResults.SelectedItem;
             //foreach (var message in _dataContext.SelectedGroup.Messages)
             //{

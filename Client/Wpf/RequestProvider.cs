@@ -32,6 +32,11 @@ namespace Client.Wpf
             HubProxy.On<Group, byte[]>("RoomInvite", action);
         }
 
+        public static void AppendUserJoinedGroupHandler(Action<Guid, GroupUserPublicKey> action)
+        {
+            HubProxy.On<Guid, GroupUserPublicKey>("UserLeftGroup", action);
+        }
+
         public static void AppendUserLeftGroupHandler(Action<Guid, string> action)
         {
             HubProxy.On<Guid, string>("UserLeftGroup", action);
@@ -47,6 +52,11 @@ namespace Client.Wpf
             return await HubProxy.Invoke<OperationResponse<ChatUserViewModel>>("AddToContacts", contactEmail);
         }
         
+        public static async Task<OperationResponse<PgpKeyPair>> JoinGroup(Guid groupId)
+        {
+            return await HubProxy.Invoke<OperationResponse<PgpKeyPair>>("JoinGroup", groupId);
+        }
+
         public static async void RemoveFromContacts(string contactEmail)
         {
             await HubProxy.Invoke("RemoveFromContacts", contactEmail);

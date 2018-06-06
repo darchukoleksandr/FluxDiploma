@@ -115,6 +115,11 @@ namespace Client.Wpf.Windows
                     IsolatedStorageManager.DeleteOauthTokens();
                 }
 
+                if (e.Message.StartsWith("StatusCode: 400")) // Token ??
+                {
+                    IsolatedStorageManager.DeleteOauthTokens();
+                }
+
                 throw;
             }
             catch (Exception e)

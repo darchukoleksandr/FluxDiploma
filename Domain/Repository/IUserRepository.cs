@@ -13,5 +13,6 @@ namespace Domain.Repository
         Task RemoveContact(string userEmail, string contactEmail);
         void AddContact(string userEmail, string contactEmail);
         Task<IEnumerable<User>> Search(string email);
+        Task AddNewParcipantPrivateKey(string email, GroupUserPrivateKey groupUserPrivateKey);
     }
 }

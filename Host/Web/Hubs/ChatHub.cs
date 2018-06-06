@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IdentityModel;
 using System.IO;
-using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -313,18 +311,18 @@ namespace Host.Web.Hubs
 
         public async Task<IEnumerable<SearchResult>> Search(string pattern)
         {
-            var groupsResult = await GroupRepository.Search(pattern);
+//            var groupsResult = await GroupRepository.Search(pattern);
             var usersResult = await UserRepository.Search(pattern);
 
             var result = new List<SearchResult>();
 
-            result.AddRange(groupsResult.Select(group => new SearchResult
-            {
-                Id = group.Id,
-                Name = group.Name,
-                Picture = group.Picture,
-                Type = SearchResultType.Group
-            }));
+//            result.AddRange(groupsResult.Select(group => new SearchResult
+//            {
+//                Id = group.Id,
+//                Name = group.Name,
+//                Picture = group.Picture,
+//                Type = SearchResultType.Group
+//            }));
 
             result.AddRange(usersResult.Select(user => new SearchResult
             {
@@ -417,6 +415,61 @@ namespace Host.Web.Hubs
             return messages;
         }
 
+        public async Task<OperationResponse<PgpKeyPair>> JoinGroup(Guid groupId)
+        {
+            var result = new OperationResponse<PgpKeyPair>();
+
+            var group = await GroupRepository.GetByIdExcludeMessages(groupId);
+            if (group == null)
+            {
+                result.Error = "Group with provided id was not found!";
+                return result;
+            } 
+            if (group.Type != GroupType.Open)
+            {
+                result.Error = "Can not join to group that is not open!";
+                return result;
+            }
+            
+            var sender = ConnectedUsers[Context.ConnectionId];
+
+            var keyPair = new Pgp().GenerateKeyPair(SymmetricKeyAlgorithmTag.Aes256, sender);
+
+            result.Response = keyPair;
+
+            var publicKey = new GroupUserPublicKey
+            {
+                Email = sender,
+                PublicKey = keyPair.PublicKey
+            };
+
+            await GroupRepository.AddNewParcipantPublicKey(groupId, publicKey);
+
+            await UserRepository.AddNewParcipantPrivateKey(sender, new GroupUserPrivateKey
+            {
+                GroupId = groupId,
+                PrivateKey = keyPair.PrivateKey
+            });
+
+            var receipents = await GroupRepository.GetReceipents(groupId);
+
+            NotifyJoinGroupReceipents(receipents, groupId, publicKey);
+            
+            return result;
+        }
+
+        private void NotifyJoinGroupReceipents(IEnumerable<string> receipents, Guid groupId, GroupUserPublicKey publicKey)
+        {
+            foreach (var receipent in receipents)
+            {
+                var userConnection = ConnectedUsers.FirstOrDefault(pair => pair.Value == receipent).Key;
+                if (userConnection != null)
+                {
+                    Clients.Client(userConnection).UserJoinedGroup(groupId, publicKey);
+                }
+            }
+        }
+
         private void AddUserToOnlineList(string connectionId, string userEmail)
         {
             var userConnection = ConnectedUsers.FirstOrDefault(pair => pair.Value == userEmail);
@@ -427,19 +480,19 @@ namespace Host.Web.Hubs
             ConnectedUsers.Add(connectionId, userEmail);
         }
 
-        private void NotifyLeaveGroupReceipents(IEnumerable<string> receipents, Guid chatId, string userEmail)
+        private void NotifyLeaveGroupReceipents(IEnumerable<string> receipents, Guid groupId, string userEmail)
         {
             foreach (var receipent in receipents)
             {
                 var userConnection = ConnectedUsers.FirstOrDefault(pair => pair.Value == receipent).Key;
                 if (userConnection != null)
                 {
-                    Clients.Client(userConnection).UserLeftGroup(chatId, userEmail);
+                    Clients.Client(userConnection).UserLeftGroup(groupId, userEmail);
                 }
             }
         }
 
-        private void NotifyMessageReceivedReceipents(IEnumerable<string> receipents, Guid chatId, Message message)
+        private void NotifyMessageReceivedReceipents(IEnumerable<string> receipents, Guid groupId, Message message)
         {
             foreach (var receipent in receipents)
             {
@@ -449,14 +502,14 @@ namespace Host.Web.Hubs
                 {
                     if (userConnection != null)
                     {
-                        Clients.Client(userConnection).MessageReceived(chatId, message);
+                        Clients.Client(userConnection).MessageReceived(groupId, message);
                     }
                 }
                 else
                 {
                     if (userConnection != null && ConnectedUsers[userConnection] != message.SenderEmail)
                     {
-                        Clients.Client(userConnection).MessageReceived(chatId, message);
+                        Clients.Client(userConnection).MessageReceived(groupId, message);
                     }
                 }
             }

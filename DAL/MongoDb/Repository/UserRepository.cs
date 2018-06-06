@@ -76,6 +76,13 @@ namespace DAL.MongoDb.Repository
             return await _mongoCollection.Find(filter).Project<User>(projection).Limit(10).ToListAsync();
         }
 
+        public async Task AddNewParcipantPrivateKey(string email, GroupUserPrivateKey groupUserPrivateKey)
+        {
+            var filter = Builders<User>.Filter.Eq(user => user.Email, email);
+            var update = Builders<User>.Update.Pull(user => user.PrivateKeys, groupUserPrivateKey);
+            await _mongoCollection.UpdateOneAsync(filter, update);
+        }
+
         public async Task RemoveContact(string userEmail, string contactEmail)
         {
             var filter = Builders<User>.Filter.Eq(user => user.Email, userEmail);

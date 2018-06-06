@@ -99,14 +99,22 @@ namespace DAL.MongoDb.Repository
         public async Task<IEnumerable<Group>> Search(string groupName)
         {
             var filter1 = Builders<Group>.Filter.Eq(chat => chat.Type, GroupType.Open);
-            var filter2 = Builders<Group>.Filter.Eq(chat => chat.Type, GroupType.Channel);
+//            var filter2 = Builders<Group>.Filter.Eq(chat => chat.Type, GroupType.Channel);
             var filter3 = Builders<Group>.Filter.Regex(chat => chat.Name, $"/{groupName}/");
-            var filter = filter1 & filter2 & filter3;
+//            var filter = filter1 & filter2 & filter3;
+            var filter = filter1 & filter3;
 
             var projection = Builders<Group>.Projection
                 .Exclude(group => group.Messages)
                 .Exclude(group => group.UsersPublicKeys);
             return await _mongoCollection.Find(filter).Project<Group>(projection).Limit(10).ToListAsync();
+        }
+
+        public async Task AddNewParcipantPublicKey(Guid groupId, GroupUserPublicKey publicKey)
+        {
+            var filterDefinition = Builders<Group>.Filter.Eq(group => group.Id, groupId);
+            var updateDefinition = Builders<Group>.Update.Push(group => group.UsersPublicKeys, publicKey);
+            await _mongoCollection.UpdateOneAsync(filterDefinition, updateDefinition);
         }
 
         #region unused

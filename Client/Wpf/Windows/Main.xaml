@@ -340,14 +340,14 @@
         </Grid>
 
         <Grid Visibility="Hidden" Name="ContactsList">
-<!--        <Grid Name="ContactsList">-->
+        <!-- <Grid Name="ContactsList"> -->
             <Grid HorizontalAlignment="Stretch" 
-                  VerticalAlignment="Stretch" 
+                  VerticalAlignment="Stretch"
                   Opacity="0.5" Background="DarkGray"
                   MouseUp="HideContactsListClicked">
             </Grid>
             <Grid Margin="100, 50, 100, 70" HorizontalAlignment="Center"
-                  Background="White" Width="250">
+                  Background="White" Width="350">
                 <ListView Name="ContactsListBox" 
                           Margin="15,15,15,15" 
                           ItemsSource="{Binding Path=Contacts}" 
@@ -392,7 +392,7 @@
         </Grid>
 
         <Grid Visibility="Hidden" Name="ProfileInfo">
-        <!--<Grid Name="ProfileInfo">-->
+        <!-- <Grid Name="ProfileInfo"> -->
             <Grid HorizontalAlignment="Stretch" 
                   VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
@@ -426,7 +426,8 @@
                 <Button Name="ChangeContactStatus"
                         Click="ChangeContactStatus_OnClick"
                         Content="Add to contacts"
-                        Grid.Row="2" Grid.Column="1" Margin="32,32,25,24">
+                        Grid.Row="2" Grid.Column="1" 
+                        Margin="32,32,25,24" Height="25">
                     <Button.Style>
                         <Style>
                             <Style.Triggers>

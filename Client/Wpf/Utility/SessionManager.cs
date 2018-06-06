@@ -50,7 +50,7 @@ namespace Client.Wpf.Utility
             SessionManager.UserContacts = connectionResponse.Contacts;
         }
 
-        public static async Task LogOut()
+        public static void LogOut()
         {
             IsolatedStorageManager.DeleteOauthTokens();
             RequestProvider.CloseAllConnections();

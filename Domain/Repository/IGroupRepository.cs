@@ -16,5 +16,6 @@ namespace Domain.Repository
         Task LeaveGroup(Guid groupId, string userEmail);
         Task<IEnumerable<string>> GetReceipents(Guid id);
         Task<IEnumerable<Group>> Search(string groupName);
+        Task AddNewParcipantPublicKey(Guid groupId, GroupUserPublicKey publicKey);
     }
 }
