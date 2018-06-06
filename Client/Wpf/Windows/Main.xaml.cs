@@ -113,13 +113,20 @@ namespace Client.Wpf.Windows
                     if (_dataContext.SelectedGroup == group)
                     {
                         Dispatcher.Invoke(() => {
-                            _dataContext.SelectedGroupDecryptedMessages.Add(new Message
+                            if (message.Type == MessageType.File)
                             {
-                                Id = message.Id,
-                                Sended = message.Sended,
-                                SenderEmail = message.SenderEmail,
-                                Content = SessionManager.DecryptMessage(groupId, message.Content)
-                            });
+                                _dataContext.SelectedGroupDecryptedMessages.Add(message);
+                            }
+                            else
+                            {
+                                _dataContext.SelectedGroupDecryptedMessages.Add(new Message
+                                {
+                                    Id = message.Id,
+                                    Sended = message.Sended,
+                                    SenderEmail = message.SenderEmail,
+                                    Content = SessionManager.DecryptMessage(groupId, message.Content)
+                                });
+                            }
                         });
                     }
                 }
@@ -397,18 +404,18 @@ namespace Client.Wpf.Windows
                 Multiselect = false
             };
             var result = fileDialog.ShowDialog(this);
-            if (result.Value)
+            if (!result.Value) 
+                return;
+
+            using (var fileStream = fileDialog.OpenFile())
             {
-                using (var fileStream = fileDialog.OpenFile())
+                using (var streamReader = new MemoryStream())
                 {
-                    using (var streamReader = new MemoryStream())
-                    {
-                        fileStream.CopyTo(streamReader);
+                    fileStream.CopyTo(streamReader);
                         
-                        RequestProvider.SendFile(fileDialog.SafeFileName, 
-                            streamReader.ToArray(), 
-                            _dataContext.SelectedGroup.Id);
-                    }
+                    RequestProvider.SendFile(fileDialog.SafeFileName, 
+                        streamReader.ToArray(), 
+                        _dataContext.SelectedGroup.Id);
                 }
             }
         }
@@ -422,7 +429,7 @@ namespace Client.Wpf.Windows
 
 //            try
 //            {
-                var operationResponse = await RequestProvider.DownloadFile(_dataContext.SelectedGroup.Id, selectedMessage.Id);
+                var operationResponse = await RequestProvider.DownloadFile(Guid.Parse(selectedMessage.Content));
 
                 if (operationResponse.IsErrorOccured())
                 {
@@ -467,18 +474,17 @@ namespace Client.Wpf.Windows
 
                 Dispatcher.Invoke(() =>
                 {
-                    var decryptedMessage = new Message
+                    _dataContext.SelectedGroupDecryptedMessages.Add(new Message
                     {
                         Sended = DateTime.Now,
                         SenderEmail = _dataContext.User.Email,
                         Content = message
-                    };
+                    });
 
-                    _dataContext.SelectedGroupDecryptedMessages.Add(decryptedMessage);
                     _dataContext.SelectedGroup.Messages.Add(new Message
                     {
-                        Sended = decryptedMessage.Sended,
-                        SenderEmail = decryptedMessage.SenderEmail,
+                        Sended = DateTime.Now,
+                        SenderEmail = _dataContext.User.Email,
                         Content = encryptedString
                     });
                 });

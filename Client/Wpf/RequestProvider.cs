@@ -9,8 +9,12 @@ namespace Client.Wpf
 {
     public class RequestProvider
     {
+        #if DEBUG
+            public static HubConnection HubConnection = new HubConnection($"{ConfigurationManager.AppSettings["ip_debug"]}:{ConfigurationManager.AppSettings["port_debug"]}");
+        #else
+            public static HubConnection HubConnection = new HubConnection($"{ConfigurationManager.AppSettings["ip"]}:{ConfigurationManager.AppSettings["port"]}");
+        #endif
         
-        public static HubConnection HubConnection = new HubConnection($"{ConfigurationManager.AppSettings["ip"]}:{ConfigurationManager.AppSettings["port"]}");
         public static IHubProxy HubProxy;
         
         public static void AppendGlobalConnectionCloseHandler(Action action)
@@ -70,12 +74,12 @@ namespace Client.Wpf
 
         public static void SendFile(string fileName, byte[] data, Guid groupId)
         {
-            HubProxy.Invoke(fileName, data, groupId);
+            HubProxy.Invoke("SendFile", fileName, groupId, data);
         }
         
-        public static async Task<OperationResponse<byte[]>> DownloadFile(Guid groupId, Guid messageId)
+        public static async Task<OperationResponse<byte[]>> DownloadFile(Guid storageFileId)
         {
-            return await HubProxy.Invoke<OperationResponse<byte[]>>("DownloadFile", groupId, messageId);
+            return await HubProxy.Invoke<OperationResponse<byte[]>>("DownloadFile", storageFileId);
         }
 
         public static async void LeaveGroup(Guid id)

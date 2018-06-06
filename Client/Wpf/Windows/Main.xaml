@@ -16,7 +16,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
         
-        Title="WPF client demo" Height="415" Width="681" MinHeight="300" MinWidth="525">
+        Title="Flux" Height="415" Width="681" MinHeight="300" MinWidth="525">
     <Window.Resources>
         <selector:MessageTypeDataTemplateSelector x:Key="MessageTypeDataTemplateSelector"/>
         <DataTemplate x:Key="FileMessageTemplate" DataType="models:Message">
@@ -24,7 +24,7 @@
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid ShowGridLines="True">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -57,7 +57,7 @@
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid ShowGridLines="True">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -85,7 +85,7 @@
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid ShowGridLines="True">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -112,7 +112,7 @@
                 Padding="8"
                 BorderThickness="0 0 0 1"
                 BorderBrush="{DynamicResource MaterialDesignDivider}">
-                <Grid ShowGridLines="True">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition
                             Width="50"
@@ -144,10 +144,10 @@
                      Focusable="False" Margin="210,12,10,75" 
                      AllowDrop="True" Drop="MessagesListBox_OnDrop"/>
 
-            <TextBox Height="39" Margin="210,0,100,30" TextWrapping="Wrap" 
+            <TextBox Height="39" Margin="210,0,85,30" TextWrapping="Wrap" 
                      Name="ChatTextBox" VerticalAlignment="Bottom" 
                      IsEnabled="False"/>
-            <Button Margin="0,0,55,29" VerticalAlignment="Bottom" 
+            <Button Margin="0,0,40,30" VerticalAlignment="Bottom" 
                     Name="SendMessageButton" Click="SendMessageButtonClick" 
                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" 
                     IsEnabled="False" Width="40" HorizontalAlignment="Right">
@@ -157,8 +157,9 @@
                     Width="20" />
             </Button>
             <Button IsEnabled="False"
+                    Visibility="Visible"
                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Name="SendFileButton"
-                    Margin="0,0,10,29" Click="SendFileButtonClick" VerticalAlignment="Bottom" Width="40" HorizontalAlignment="Right">
+                    Margin="0,0,-5,29" Click="SendFileButtonClick" VerticalAlignment="Bottom" Width="40" HorizontalAlignment="Right">
                 <materialDesign:PackIcon
                     Kind="File"
                     Height="20"
@@ -207,7 +208,7 @@
                              SelectionChanged="SearchResults_OnSelectionChanged">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid ShowGridLines="True">
+                                <Grid ShowGridLines="False">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition />
                                         <ColumnDefinition />
@@ -275,7 +276,7 @@
         </StackPanel>
         
         <Grid Visibility="Hidden" Name="NewGroupForm">
-<!--        <Grid Name="NewGroupForm">-->
+        <!--<Grid Name="NewGroupForm">-->
             <Grid HorizontalAlignment="Stretch" 
                   VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
@@ -285,9 +286,10 @@
                   Background="White" Width="250">
                 <!--                  Background="White" Width="250" ShowGridLines="True">-->
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="80*"/>
+                    <RowDefinition Height="75*"/>
                     <RowDefinition Height="10*"/>
                     <RowDefinition Height="10*"/>
+                    <RowDefinition Height="5*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -301,7 +303,7 @@
                           Grid.ColumnSpan="3">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid ShowGridLines="True">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition />
                                     <ColumnDefinition />
@@ -346,16 +348,6 @@
             </Grid>
             <Grid Margin="100, 50, 100, 70" HorizontalAlignment="Center"
                   Background="White" Width="250">
-                <Grid.RowDefinitions>
-<!--                    <RowDefinition Height="15*"/>-->
-<!--                    <RowDefinition Height="75*"/>-->
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-<!--                <Grid.ColumnDefinitions>-->
-<!--                    <ColumnDefinition/>-->
-<!--                    <ColumnDefinition/>-->
-<!--                    <ColumnDefinition Width="2*"/>-->
-<!--                </Grid.ColumnDefinitions>-->
                 <ListView Name="ContactsListBox" 
                           Margin="15,15,15,15" 
                           ItemsSource="{Binding Path=Contacts}" 
@@ -364,7 +356,7 @@
                           Grid.ColumnSpan="3" b:DataContext="{b:DesignData UserViewModel}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid ShowGridLines="True">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition />
                                     <ColumnDefinition Width="2*"/>
@@ -400,14 +392,14 @@
         </Grid>
 
         <Grid Visibility="Hidden" Name="ProfileInfo">
-<!--        <Grid Name="ProfileInfo">-->
+        <!--<Grid Name="ProfileInfo">-->
             <Grid HorizontalAlignment="Stretch" 
                   VerticalAlignment="Stretch" 
                   Opacity="0.5" Background="DarkGray"
                   MouseUp="HideProfileInfoClicked">
             </Grid>
             <Grid Margin="100, 50, 100, 70" Background="White" 
-                  MaxWidth="400" ShowGridLines="True" >
+                  MaxWidth="400">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition MinWidth="150" Width="1*"/>
                     <ColumnDefinition Width="3*"/>
@@ -433,7 +425,8 @@
                            TextWrapping="Wrap" Margin="15,15,15,15" />
                 <Button Name="ChangeContactStatus"
                         Click="ChangeContactStatus_OnClick"
-                        Grid.Row="2" Grid.Column="1">
+                        Content="Add to contacts"
+                        Grid.Row="2" Grid.Column="1" Margin="32,32,25,24">
                     <Button.Style>
                         <Style>
                             <Style.Triggers>
@@ -447,19 +440,6 @@
                         </Style>
                     </Button.Style>
                 </Button>
-<!--                <Button Name="RemoveFromContacts" Content="Remove from contacts" -->
-<!--                        Click="RemoveFromContacts_OnClick"-->
-<!--                        Grid.Row="2" Grid.Column="1">-->
-<!--                    <Button.Style>-->
-<!--                        <Style>-->
-<!--                            <Style.Triggers>-->
-<!--                                <DataTrigger Binding="{Binding ElementName=RemoveFromContacts, Path=DataContext.Is}" Value="True">-->
-<!--                                    <Setter Property="Button.Visibility" Value="Hidden"/>-->
-<!--                                </DataTrigger>-->
-<!--                            </Style.Triggers>-->
-<!--                        </Style>-->
-<!--                    </Button.Style>-->
-<!--                </Button>-->
             </Grid>
         </Grid>
 

@@ -56,7 +56,6 @@
     <Reference Include="BouncyCastle.Crypto, Version=1.8.2.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\..\packages\BouncyCastle.1.8.2\lib\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="ChoPGP, Version=1.0.0.8, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.AspNet.SignalR.Core.2.2.3\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
@@ -202,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\css\bootstrap.min.css" />
+    <Content Include="Content\css\fonts.css" />
     <Content Include="Content\css\style.default.min.css">
       <DependentUpon>style.default.css</DependentUpon>
     </Content>
@@ -221,23 +221,8 @@
     <Content Include="Content\css\style.violet.css" />
     <Content Include="Content\css\themify-icons.css" />
     <Content Include="Content\css\font-awesome.min.css" />
-    <Content Include="Content\img\about.jpg" />
     <Content Include="Content\img\logo.png" />
-    <Content Include="Content\img\marker.png" />
-    <Content Include="Content\img\person-1.jpg" />
-    <Content Include="Content\img\person-2.jpg" />
-    <Content Include="Content\img\person-3.jpg" />
-    <Content Include="Content\img\person-4.jpg" />
-    <Content Include="Content\img\portfolio-1.jpg" />
-    <Content Include="Content\img\portfolio-2.jpg" />
-    <Content Include="Content\img\portfolio-3.jpg" />
-    <Content Include="Content\img\portfolio-4.jpg" />
-    <Content Include="Content\img\portfolio-5.jpg" />
-    <Content Include="Content\img\portfolio-6.jpg" />
-    <Content Include="Content\img\portfolio-7.jpg" />
-    <Content Include="Content\img\portfolio-8.jpg" />
     <Content Include="Content\img\sprites\sprite.png" />
-    <Content Include="Content\img\startup-room.jpg" />
     <Content Include="Content\img\template-homepage.png" />
     <Content Include="Content\js\front.min.js">
       <DependentUpon>front.js</DependentUpon>

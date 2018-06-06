@@ -15,6 +15,7 @@ using Host.Web.Utils;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Logging;
 using Org.BouncyCastle.Bcpg;
+// ReSharper disable UnusedMember.Global
 
 namespace Host.Web.Hubs
 {
@@ -26,6 +27,11 @@ namespace Host.Web.Hubs
         private static readonly IGroupRepository GroupRepository = new GroupRepository();
         private static readonly Dictionary<string, string> ConnectedUsers = new Dictionary<string, string>();
         private readonly ILogger _logger = LoggerFactory.Default.Create(nameof(ChatHub));
+
+        public ChatHub()
+        {
+            
+        }
 
         public override Task OnConnected()
         {
@@ -202,12 +208,10 @@ namespace Host.Web.Hubs
             }
         }
         
-        public async Task<OperationResponse<byte[]>> DownloadFile(Guid groupId, Guid messageId)
+        public async Task<OperationResponse<byte[]>> DownloadFile(Guid storageFileId)
         {
-            var message = await GroupRepository.GetMessageById(groupId, messageId);
-
             var result = new OperationResponse<byte[]>();
-            var filePath = Path.Combine("Files",message.SenderEmail, message.Content);
+            var filePath = Path.Combine("Files", storageFileId.ToString());
 
             if (!File.Exists(filePath))
             {
@@ -246,18 +250,14 @@ namespace Host.Web.Hubs
             return result;
         }
 
-        public async void SendFile(string fileName, byte[] data, Guid groupId)
+        public async void SendFile(string fileName, Guid groupId, byte[] data)
         {
             var sender = ConnectedUsers[Context.ConnectionId];
 
-            if (!Directory.Exists(Path.Combine("Files", sender)))
-            {
-                Directory.CreateDirectory(Path.Combine("Files", sender));
-            }
-
             var receipents = await GroupRepository.GetReceipents(groupId);
-            
-            using (var fileStream = File.Create(Path.Combine("Files", sender, $"{Guid.NewGuid()}.{fileName}")))
+            var storageFileId = Guid.NewGuid().ToString();
+
+            using (var fileStream = File.Create(Path.Combine("Files", storageFileId)))
             {
                 await fileStream.WriteAsync(data, 0, data.Length);
 
@@ -266,7 +266,7 @@ namespace Host.Web.Hubs
                 var message = new Message
                 {
                     SenderEmail = sender,
-                    Content = Path.GetFileName(fileStream.Name),
+                    Content = storageFileId,
                     Sended = DateTime.Now,
                     Type = MessageType.File
                 };
@@ -446,10 +446,20 @@ namespace Host.Web.Hubs
             foreach (var receipent in receipents)
             {
                 var userConnection = ConnectedUsers.FirstOrDefault(pair => pair.Value == receipent).Key;
-                if (userConnection != null && ConnectedUsers[userConnection] != message.SenderEmail)
-//                if (userConnection != null)
+
+                if (message.Type == MessageType.File)
                 {
-                    Clients.Client(userConnection).MessageReceived(chatId, chatId, message);
+                    if (userConnection != null)
+                    {
+                        Clients.Client(userConnection).MessageReceived(chatId, message);
+                    }
+                }
+                else
+                {
+                    if (userConnection != null && ConnectedUsers[userConnection] != message.SenderEmail)
+                    {
+                        Clients.Client(userConnection).MessageReceived(chatId, message);
+                    }
                 }
             }
         }
