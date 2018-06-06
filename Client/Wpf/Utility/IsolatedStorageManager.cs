@@ -1,10 +1,11 @@
 ﻿using System.IO;
 using System.IO.IsolatedStorage;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Client.Wpf.Utility
 {
-    class IsolatedStorageManager
+    public class IsolatedStorageManager
     {
         private const string TokensFileName = "Tokens";
 
@@ -19,16 +20,15 @@ namespace Client.Wpf.Utility
             }
         }
 
-        private static async Task ReadFile()
+        public static async Task<byte[]> ReadFile(string fileName)
         {
             using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
             {
-                using (var isolatedStorageFileStream = isolatedStorage.OpenFile(TokensFileName, FileMode.Open, FileAccess.Read))
+                using (var isolatedStorageFileStream = isolatedStorage.OpenFile(fileName, FileMode.Open, FileAccess.Read))
                 {
-                    using (var streamReader = new StreamReader(isolatedStorageFileStream))
-                    {
-                        var text = await streamReader.ReadToEndAsync();
-                    }
+                    var result = new byte[isolatedStorageFileStream.Length];
+                    await isolatedStorageFileStream.ReadAsync(result, 0, result.Length);
+                    return result;
                 }
             }
         }
@@ -39,41 +39,30 @@ namespace Client.Wpf.Utility
             {
                 using (var isolatedStorageFileStream = isolatedStorage.OpenFile(TokensFileName, FileMode.Open, FileAccess.Read))
                 {
-                    using (var streamReader = new StreamReader(isolatedStorageFileStream))
-                    {
-                        var accessToken = await streamReader.ReadLineAsync();
-                        return accessToken;
-                    }
+                    var resultBytes = new byte[isolatedStorageFileStream.Length];
+                    await isolatedStorageFileStream.ReadAsync(resultBytes, 0, resultBytes.Length);
+                    return Encoding.UTF8.GetString(resultBytes);
                 }
             }
         }
 
-        public static async Task SaveOauthTokens(string accessToken)
+        public static async Task SaveFile(string fileName, byte[] data)
         {
-            await ReadFile();
             using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
             {
-                using (var isolatedStorageFileStream = isolatedStorage.OpenFile(TokensFileName, FileMode.Open, FileAccess.Write))
+                using (var isolatedStorageFileStream = isolatedStorage.CreateFile(fileName))
                 {
-                    using (var streamReader = new StreamWriter(isolatedStorageFileStream))
-                    {
-                        await streamReader.WriteLineAsync(accessToken);
-                    }
+                    await isolatedStorageFileStream.WriteAsync(data, 0, data.Length);
                 }
             }
         }
 
-        public static async Task DeleteOauthTokens()
+        public static void DeleteOauthTokens()
         {
-            await ReadFile();
             using (var isolatedStorage = IsolatedStorageFile.GetUserStoreForAssembly())
             {
-                using (var isolatedStorageFileStream = isolatedStorage.OpenFile(TokensFileName, FileMode.Open, FileAccess.Write))
+                using (isolatedStorage.CreateFile(TokensFileName))
                 {
-                    using (var streamReader = new StreamWriter(isolatedStorageFileStream))
-                    {
-                        await streamReader.WriteLineAsync(string.Empty);
-                    }
                 }
             }
         }

@@ -52,7 +52,7 @@ namespace Client.Wpf.Utility
 
         public static async Task LogOut()
         {
-            await IsolatedStorageManager.DeleteOauthTokens();
+            IsolatedStorageManager.DeleteOauthTokens();
             RequestProvider.CloseAllConnections();
 
             LoggedUser = null;

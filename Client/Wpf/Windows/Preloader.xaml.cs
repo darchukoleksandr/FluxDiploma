@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Auth0.OidcClient;
@@ -38,7 +39,7 @@ namespace Client.Wpf.Windows
 
                     break;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
 //                     ignored 
                 }
@@ -73,7 +74,7 @@ namespace Client.Wpf.Windows
                     return;
                 }
 
-                await IsolatedStorageManager.SaveOauthTokens(result.AccessToken);
+                await IsolatedStorageManager.SaveFile("Tokens", Encoding.UTF8.GetBytes(result.AccessToken));
             }
             catch (InvalidOperationException)
             {
@@ -111,7 +112,7 @@ namespace Client.Wpf.Windows
 
                 if (e.Message.StartsWith("StatusCode: 401")) // Token expired
                 {
-                    await IsolatedStorageManager.DeleteOauthTokens();
+                    IsolatedStorageManager.DeleteOauthTokens();
                 }
 
                 throw;
@@ -120,7 +121,7 @@ namespace Client.Wpf.Windows
             {
                 if (e.Message.StartsWith("Unauthorized")) // Token expired
                 {
-                    await IsolatedStorageManager.DeleteOauthTokens();
+                    IsolatedStorageManager.DeleteOauthTokens();
                 }
 
                 throw;

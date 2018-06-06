@@ -144,10 +144,10 @@
                      Focusable="False" Margin="210,12,10,75" 
                      AllowDrop="True" Drop="MessagesListBox_OnDrop"/>
 
-            <TextBox Height="39" Margin="210,0,85,30" TextWrapping="Wrap" 
+            <TextBox Height="39" Margin="210,0,118,30" TextWrapping="Wrap" 
                      Name="ChatTextBox" VerticalAlignment="Bottom" 
                      IsEnabled="False"/>
-            <Button Margin="0,0,40,30" VerticalAlignment="Bottom" 
+            <Button Margin="0,0,73,30" VerticalAlignment="Bottom" 
                     Name="SendMessageButton" Click="SendMessageButtonClick" 
                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" 
                     IsEnabled="False" Width="40" HorizontalAlignment="Right">
@@ -159,7 +159,7 @@
             <Button IsEnabled="False"
                     Visibility="Visible"
                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}" Name="SendFileButton"
-                    Margin="0,0,-5,29" Click="SendFileButtonClick" VerticalAlignment="Bottom" Width="40" HorizontalAlignment="Right">
+                    Margin="0,0,19,29" Click="SendFileButtonClick" VerticalAlignment="Bottom" Width="40" HorizontalAlignment="Right">
                 <materialDesign:PackIcon
                     Kind="File"
                     Height="20"

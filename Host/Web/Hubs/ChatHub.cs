@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IdentityModel;
 using System.IO;
+using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Auth0.Core.Exceptions;
+using B2Net;
+using B2Net.Models;
 using DAL.MongoDb.Repository;
 using Domain.Crypto;
 using Domain.Models;
@@ -27,6 +31,13 @@ namespace Host.Web.Hubs
         private static readonly IGroupRepository GroupRepository = new GroupRepository();
         private static readonly Dictionary<string, string> ConnectedUsers = new Dictionary<string, string>();
         private readonly ILogger _logger = LoggerFactory.Default.Create(nameof(ChatHub));
+
+        private static readonly B2Options B2Options = new B2Options() {
+            AccountId = "3d2d11203259",
+            ApplicationKey = "0028c145b9a58994e6d4f7ce508ec8b108fc6da5ec",
+            BucketId = "d33de2fd41b1d26063320519",
+            PersistBucket = true
+        };
 
         public ChatHub()
         {
@@ -208,25 +219,14 @@ namespace Host.Web.Hubs
             }
         }
         
-        public async Task<OperationResponse<byte[]>> DownloadFile(Guid storageFileId)
+        public async Task<OperationResponse<byte[]>> DownloadFile(string storageFileId)
         {
             var result = new OperationResponse<byte[]>();
-            var filePath = Path.Combine("Files", storageFileId.ToString());
 
-            if (!File.Exists(filePath))
-            {
-                result.Error = "File not exits!";
-                return result;
-            }
-
-            using (var fileStream = File.OpenRead(filePath))
-            {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await fileStream.CopyToAsync(memoryStream);
-                    result.Response = memoryStream.ToArray();
-                }
-            }
+            var b2Client = new B2Client(B2Client.Authorize(B2Options));
+            var file = await b2Client.Files.DownloadById(storageFileId);
+            
+            result.Response = file.FileData;
 
             return result;
         }
@@ -255,26 +255,24 @@ namespace Host.Web.Hubs
             var sender = ConnectedUsers[Context.ConnectionId];
 
             var receipents = await GroupRepository.GetReceipents(groupId);
-            var storageFileId = Guid.NewGuid().ToString();
 
-            using (var fileStream = File.Create(Path.Combine("Files", storageFileId)))
+            var b2Client = new B2Client(B2Client.Authorize(B2Options));
+            var uploadUrl = await b2Client.Files.GetUploadUrl("d33de2fd41b1d26063320519");
+            var fileInfo = await b2Client.Files.Upload(data, fileName, uploadUrl, "d33de2fd41b1d26063320519", null);
+
+            Console.WriteLine($"SendFile request saved as: {Path.GetFileName(fileInfo.FileId)}!");
+            
+            var message = new Message
             {
-                await fileStream.WriteAsync(data, 0, data.Length);
+                SenderEmail = sender,
+                Content = fileInfo.FileId,
+                Sended = DateTime.Now,
+                Type = MessageType.File
+            };
 
-                Console.WriteLine($"SendFile request: {Path.GetFileName(fileStream.Name)}!");
+            await GroupRepository.InsertMessage(groupId, message);
 
-                var message = new Message
-                {
-                    SenderEmail = sender,
-                    Content = storageFileId,
-                    Sended = DateTime.Now,
-                    Type = MessageType.File
-                };
-
-                await GroupRepository.InsertMessage(groupId, message);
-
-                NotifyMessageReceivedReceipents(receipents, groupId, message);
-            }
+            NotifyMessageReceivedReceipents(receipents, groupId, message);
         }
 
         public async void SendMessage(Guid groupId, string content)

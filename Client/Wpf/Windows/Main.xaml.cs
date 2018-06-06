@@ -429,7 +429,7 @@ namespace Client.Wpf.Windows
 
 //            try
 //            {
-                var operationResponse = await RequestProvider.DownloadFile(Guid.Parse(selectedMessage.Content));
+                var operationResponse = await RequestProvider.DownloadFile(selectedMessage.Content);
 
                 if (operationResponse.IsErrorOccured())
                 {

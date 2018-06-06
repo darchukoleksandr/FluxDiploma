@@ -77,7 +77,7 @@ namespace Client.Wpf
             HubProxy.Invoke("SendFile", fileName, groupId, data);
         }
         
-        public static async Task<OperationResponse<byte[]>> DownloadFile(Guid storageFileId)
+        public static async Task<OperationResponse<byte[]>> DownloadFile(string storageFileId)
         {
             return await HubProxy.Invoke<OperationResponse<byte[]>>("DownloadFile", storageFileId);
         }
