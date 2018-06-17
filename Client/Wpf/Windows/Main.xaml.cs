@@ -40,15 +40,12 @@ namespace Client.Wpf.Windows
             _dataContext.User = SessionManager.LoggedUser;
             _dataContext.Contacts.AddRange(SessionManager.UserContacts.Select(user => new UserViewModel(user.Email, user.Claims)));
             _dataContext.Groups.AddRange(SessionManager.UserGroups);
-            //_dataContext.Groups = new ObservableCollection<Group>(SessionManager.UserGroups.Select(group =>
-            //{
-                //if (group.Type == GroupType.Personal)
-                //{
-                    //group.Name = group.UsersPublicKeys.First(key => key.Email != SessionManager.LoggedUser.Email).Email;
-                //}
-
-                //return group;
-            //}));
+//            _dataContext.Groups.AddRange(SessionManager.UserGroups.Select(group =>
+//            {
+//                if (_dataContext.User.PrivateKeys.Any(key => key.GroupId == group.Id))
+//                    return group;
+//                return null;
+//            }));
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -83,6 +80,14 @@ namespace Client.Wpf.Windows
                 {
                     group.Name = group.UsersPublicKeys.First(key => key.Email != SessionManager.LoggedUser.Email).Email;
                 }
+
+                Dispatcher.Invoke(() =>
+                {
+                    if (group.Name == NewGroupNameTextBox.Text)
+                    {
+                        HideNewGroupFormClicked(null, null);
+                    }
+                });
 
 //                var result = new List<Group>(_dataContext.Groups) {group};
 //                _dataContext.Groups = result;
@@ -172,7 +177,7 @@ namespace Client.Wpf.Windows
 
         private void CreateRoomButtonClick(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(NewRoomNameTextBox.Text))
+            if (string.IsNullOrEmpty(NewGroupNameTextBox.Text))
             {
                 MessageBox.Show(this, "Enter group name!");
                 return;
@@ -192,7 +197,7 @@ namespace Client.Wpf.Windows
             var groupType = (GroupType) Enum.Parse(typeof(GroupType), GroupTypeComboBox.SelectionBoxItem.ToString());
 
             RequestProvider.CreateGroup(_dataContext.User.Email, 
-                NewRoomNameTextBox.Text, groupType, receipents);
+                NewGroupNameTextBox.Text, groupType, receipents);
 
             HideContactsListClicked(sender, null);
         }
@@ -368,7 +373,6 @@ namespace Client.Wpf.Windows
             {
                 await ShowUserProfileInfo(selectedItem.Name);
                 SearchResults.UnselectAll();
-                return;
             }
 
 //            _dataContext.SelectedGroupDecryptedMessages.Clear();
@@ -587,6 +591,11 @@ namespace Client.Wpf.Windows
         private async void ShowPersonalInfoClick(object sender, RoutedEventArgs e)
         {
             await ShowUserProfileInfo(_dataContext.User.Email);
+        }
+
+        private void MessagesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }

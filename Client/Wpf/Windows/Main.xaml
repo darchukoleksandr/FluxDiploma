@@ -142,7 +142,7 @@
                      HorizontalContentAlignment="Stretch"
                      ItemTemplateSelector="{StaticResource MessageTypeDataTemplateSelector}"
                      Focusable="False" Margin="210,12,10,75" 
-                     AllowDrop="True" Drop="MessagesListBox_OnDrop"/>
+                     AllowDrop="True" Drop="MessagesListBox_OnDrop" SelectionChanged="MessagesListBox_SelectionChanged"/>
 
             <TextBox Height="39" Margin="210,0,118,30" TextWrapping="Wrap" 
                      Name="ChatTextBox" VerticalAlignment="Bottom" 
@@ -320,7 +320,7 @@
                 </ListView>
                 <TextBox Grid.Row="2" Grid.Column="1"
                          TextWrapping="Wrap"
-                         Name="NewRoomNameTextBox"
+                         Name="NewGroupNameTextBox"
                          />
                 <Label Grid.Row="1" Grid.Column="0">Group type:</Label>
                 <ComboBox Name="GroupTypeComboBox" SelectedIndex="0"

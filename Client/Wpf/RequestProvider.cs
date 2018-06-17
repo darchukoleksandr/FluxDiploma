@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Threading.Tasks;
+using System.Windows;
 using Domain.Models;
 using Microsoft.AspNet.SignalR.Client;
 
@@ -16,7 +17,13 @@ namespace Client.Wpf
         #endif
         
         public static IHubProxy HubProxy;
-        
+
+        public RequestProvider()
+        {
+            HubConnection.StateChanged += change =>
+                MessageBox.Show($"Changed from [{change.OldState}] to [{change.NewState}]");
+        }
+
         public static void AppendGlobalConnectionCloseHandler(Action action)
         {
             HubProxy.On("CloseConnection", action);
